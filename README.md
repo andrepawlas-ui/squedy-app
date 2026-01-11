@@ -1,0 +1,1 @@
+# squedy-app
