@@ -183,6 +183,79 @@
     }
 
     carregarDados();
+// 1. Nova função para atualizar o status no Supabase
+async function marcarComoEnviado(id) {
+    try {
+        const { error } = await _supabase
+            .from('reminders')
+            .update({ status: 'sent' }) // Muda para enviado
+            .eq('id', id);
+
+        if (error) throw error;
+        
+        // Recarrega a tabela para o cliente sumir da lista de pendentes
+        carregarDados(); 
+    } catch (err) {
+        console.error('Erro ao atualizar status:', err.message);
+    }
+}
+
+async function carregarDados() {
+    try {
+        // Buscamos apenas os que ainda estão PENDING
+        const { data, error } = await _supabase
+            .from('reminders')
+            .select(`
+                id,
+                title,
+                event_date,
+                status,
+                message_template,
+                clients (name, phone)
+            `)
+            .eq('status', 'pending'); // Filtro para não mostrar o que já foi enviado
+
+        if (error) throw error;
+
+        const tbody = document.querySelector('table tbody');
+        tbody.innerHTML = '';
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">🎉 Tudo em dia! Nenhum lembrete pendente.</td></tr>';
+            return;
+        }
+
+        data.forEach(item => {
+            const dataFormatada = new Date(item.event_date).toLocaleDateString('pt-BR');
+            const nomeCliente = item.clients?.name || 'Cliente';
+            const foneCliente = item.clients?.phone || '';
+            const msgFinal = item.message_template.replace('{name}', nomeCliente);
+            const linkWa = `https://wa.me/${foneCliente}?text=${encodeURIComponent(msgFinal)}`;
+
+            // Adicionamos o "onclick" para disparar a atualização
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${nomeCliente}</strong><br><small>${foneCliente}</small></td>
+                    <td>${item.title}</td>
+                    <td>${dataFormatada}</td>
+                    <td><span class="badge-status status-hoje">${item.status.toUpperCase()}</span></td>
+                    <td>
+                        <a href="${linkWa}" 
+                           target="_blank" 
+                           class="btn-whatsapp" 
+                           onclick="marcarComoEnviado('${item.id}')">
+                           <i class="fab fa-whatsapp"></i> Enviar
+                        </a>
+                    </td>
+                </tr>
+            `;
+        });
+    } catch (err) {
+        console.error('Erro ao conectar com Supabase:', err.message);
+    }
+}
+
+carregarDados();
 </script>
 </body>
 </html>
