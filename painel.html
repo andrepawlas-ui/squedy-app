@@ -119,60 +119,53 @@
 		</table>
         </div>
     </div>
-				<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // 1. Configure aqui suas chaves que aparecem no Supabase (Settings > API)
   const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmeXlpYXJzdmppaXNkdm5odnRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwODEwMzYsImV4cCI6MjA4MzY1NzAzNn0.mlAW9b0dsewLUqvtyY1tEOTY643_sNGIgiVEgCCgADs'; // Pegue a 'anon public' no seu painel Supabase
 
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  async function carregarLembretes() {
-    // 2. Busca os dados unindo as tabelas (o mesmo JOIN que fizemos no n8n)
-    const { data, error } = await supabase
-      .from('reminders')
-      .select(`
-        id,
-        title,
-        message_template,
-        event_date,
-        clients (name, phone)
-      `)
-      .eq('status', 'pending');
+  async function carregarDados() {
+    try {
+      // Faz o join entre reminders e clients conforme sua estrutura
+      const { data, error } = await _supabase
+        .from('reminders')
+        .select(`
+          id,
+          title,
+          event_date,
+          status,
+          message_template,
+          clients (name, phone)
+        `);
 
-    if (error) {
-      console.error('Erro ao buscar dados:', error);
-      return;
+      if (error) throw error;
+
+      const tbody = document.querySelector('table tbody');
+      tbody.innerHTML = ''; // Limpa os dados estáticos
+
+      data.forEach(item => {
+        // Formatação da data para o padrão brasileiro
+        const dataFormatada = new Date(item.event_date).toLocaleDateString('pt-BR');
+        const msgFinal = item.message_template.replace('{name}', item.clients.name);
+        const linkWa = `https://wa.me/${item.clients.phone}?text=${encodeURIComponent(msgFinal)}`;
+
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${item.clients.name}</strong><br><small>${item.clients.phone}</small></td>
+            <td>${item.title}</td>
+            <td>${dataFormatada}</td>
+            <td><span class="badge-status status-hoje">${item.status.toUpperCase()}</span></td>
+            <td><a href="${linkWa}" target="_blank" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Enviar</a></td>
+          </tr>
+        `;
+      });
+    } catch (err) {
+      console.error('Erro ao carregar:', err.message);
     }
-
-    // 3. Limpa a tabela atual e preenche com os dados reais
-    const tabelaCorpo = document.querySelector('.reminders-table tbody');
-    tabelaCorpo.innerHTML = ''; 
-
-    data.forEach(item => {
-      const mensagemFinal = item.message_template.replace('{name}', item.clients.name);
-      const linkWhatsApp = `https://wa.me/${item.clients.phone}?text=${encodeURIComponent(mensagemFinal)}`;
-
-      const linha = `
-        <tr>
-          <td>${item.clients.name}</td>
-          <td>${item.title}</td>
-          <td>${new Date(item.event_date).toLocaleDateString('pt-BR')}</td>
-          <td><span class="status pending">Pendente</span></td>
-          <td>
-            <a href="${linkWhatsApp}" target="_blank" style="text-decoration:none;">
-              <button class="btn-action">Enviar WhatsApp</button>
-            </a>
-          </td>
-        </tr>
-      `;
-      tabelaCorpo.innerHTML += linha;
-    });
   }
 
-  // Executa ao abrir a página
-  carregarLembretes();
-</script>
+  carregarDados();
 </body>
 </html>
