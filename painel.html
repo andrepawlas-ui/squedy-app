@@ -119,53 +119,70 @@
 		</table>
         </div>
     </div>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmeXlpYXJzdmppaXNkdm5odnRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwODEwMzYsImV4cCI6MjA4MzY1NzAzNn0.mlAW9b0dsewLUqvtyY1tEOTY643_sNGIgiVEgCCgADs'; // Pegue a 'anon public' no seu painel Supabase
+    // Configurações do seu projeto
+    const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_EJIgtPIhhfnIyaALnIw0JQ_r6Kc6cbp'; // Cole a chave 'sb_publishable' aqui
 
-  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Inicialização otimizada para evitar bloqueios de navegador
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+            persistSession: false, // Resolve o erro de "blocked access to storage"
+            autoRefreshToken: false,
+            detectSessionInUrl: false
+        }
+    });
 
-  async function carregarDados() {
-    try {
-      // Faz o join entre reminders e clients conforme sua estrutura
-      const { data, error } = await _supabase
-        .from('reminders')
-        .select(`
-          id,
-          title,
-          event_date,
-          status,
-          message_template,
-          clients (name, phone)
-        `);
+    async function carregarDados() {
+        try {
+            // Busca dados das tabelas reminders e clients
+            const { data, error } = await _supabase
+                .from('reminders')
+                .select(`
+                    id,
+                    title,
+                    event_date,
+                    status,
+                    message_template,
+                    clients (name, phone)
+                `);
 
-      if (error) throw error;
+            if (error) throw error;
 
-      const tbody = document.querySelector('table tbody');
-      tbody.innerHTML = ''; // Limpa os dados estáticos
+            const tbody = document.querySelector('table tbody');
+            tbody.innerHTML = ''; // Limpa os dados de exemplo (Ricardo, Ana, etc.)
 
-      data.forEach(item => {
-        // Formatação da data para o padrão brasileiro
-        const dataFormatada = new Date(item.event_date).toLocaleDateString('pt-BR');
-        const msgFinal = item.message_template.replace('{name}', item.clients.name);
-        const linkWa = `https://wa.me/${item.clients.phone}?text=${encodeURIComponent(msgFinal)}`;
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum lembrete encontrado no banco.</td></tr>';
+                return;
+            }
 
-        tbody.innerHTML += `
-          <tr>
-            <td><strong>${item.clients.name}</strong><br><small>${item.clients.phone}</small></td>
-            <td>${item.title}</td>
-            <td>${dataFormatada}</td>
-            <td><span class="badge-status status-hoje">${item.status.toUpperCase()}</span></td>
-            <td><a href="${linkWa}" target="_blank" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Enviar</a></td>
-          </tr>
-        `;
-      });
-    } catch (err) {
-      console.error('Erro ao carregar:', err.message);
+            data.forEach(item => {
+                const dataFormatada = new Date(item.event_date).toLocaleDateString('pt-BR');
+                const nomeCliente = item.clients?.name || 'Cliente';
+                const foneCliente = item.clients?.phone || '';
+                
+                // Monta a mensagem personalizada do WhatsApp
+                const msgFinal = item.message_template.replace('{name}', nomeCliente);
+                const linkWa = `https://wa.me/${foneCliente}?text=${encodeURIComponent(msgFinal)}`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${nomeCliente}</strong><br><small>${foneCliente}</small></td>
+                        <td>${item.title}</td>
+                        <td>${dataFormatada}</td>
+                        <td><span class="badge-status status-hoje">${item.status.toUpperCase()}</span></td>
+                        <td><a href="${linkWa}" target="_blank" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Enviar</a></td>
+                    </tr>
+                `;
+            });
+        } catch (err) {
+            console.error('Erro ao conectar com Supabase:', err.message);
+        }
     }
-  }
 
-  carregarDados();
+    carregarDados();
+</script>
 </body>
 </html>
