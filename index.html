@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squedy App - Seu Cliente Sempre de Volta</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #f59e0b;
+            --dark: #1e293b;
+            --light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: var(--light);
+            color: var(--dark);
+        }
+
+        /* --- LOGOTIPO SQUEDY COM Q DE RELÓGIO --- */
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            letter-spacing: -1px;
+        }
+
+        .logo-q {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--secondary);
+            border-radius: 50%;
+            margin: 0 2px;
+            vertical-align: middle;
+        }
+
+        /* Ponteiros do Relógio no Q */
+        .logo-q::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 12px;
+            background: var(--secondary);
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -100%);
+            transform-origin: bottom;
+        }
+
+        .logo-q::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 2px;
+            background: var(--secondary);
+            left: 50%;
+            top: 50%;
+            transform: translate(0, -50%);
+        }
+
+        /* Tracinho do Q */
+        .q-tail {
+            position: absolute;
+            width: 10px;
+            height: 4px;
+            background: var(--secondary);
+            bottom: -2px;
+            right: -5px;
+            transform: rotate(45deg);
+        }
+
+        /* --- LAYOUT --- */
+        header {
+            background: white;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .hero {
+            padding: 80px 5%;
+            text-align: center;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .btn {
+            background: var(--secondary);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 80px 5%;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            background: var(--dark);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            S<span class="logo-q"><span class="q-tail"></span></span>UEDY
+        </div>
+        <nav>
+            <a href="#" class="btn" style="padding: 0.5rem 1.5rem;">Entrar</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Seu cliente sempre de volta.</h1>
+        <p>A plataforma de lembretes inteligentes que organiza suas datas e automatiza seu pós-venda via WhatsApp.</p>
+        <a href="#contato" class="btn">Começar Agora Grátis</a>
+    </section>
+
+    <section class="features">
+        <div class="card">
+            <i class="fas fa-calendar-check"></i>
+            <h3>Gestão de Datas</h3>
+            <p>Monitore vencimentos, aniversários e revisões de forma automática e nunca mais perca um prazo.</p>
+        </div>
+        <div class="card">
+            <i class="fab fa-whatsapp"></i>
+            <h3>Envio Rápido</h3>
+            <p>Gere mensagens personalizadas e envie para o WhatsApp do cliente com apenas um clique.</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-users"></i>
+            <h3>Base de Clientes</h3>
+            <p>Histórico completo de cada cliente para você saber exatamente quando ele precisa retornar.</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-chart-line"></i>
+            <h3>Fidelização</h3>
+            <p>Aumente seu faturamento mantendo um relacionamento ativo e profissional com sua base.</p>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Squedy App - Gerenciamento Inteligente de Clientes</p>
+    </footer>
+
+</body>
+</html>

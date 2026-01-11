@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Squedy - Gestão de Lembretes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --primary: #2563eb;
+            --secondary: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --text: #1e293b;
+        }
+
+        body { font-family: 'Inter', sans-serif; margin: 0; display: flex; background: var(--bg); color: var(--text); }
+
+        /* SIDEBAR */
+        .sidebar { width: var(--sidebar-width); background: #0f172a; height: 100vh; color: white; position: fixed; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 30px; font-size: 1.5rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .nav-links { flex: 1; padding: 20px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: #94a3b8; text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: 0.3s; }
+        .nav-item:hover, .nav-item.active { background: #1e293b; color: white; }
+        .nav-item.active { border-left: 4px solid var(--secondary); }
+
+        /* MAIN CONTENT */
+        .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        
+        /* CARDS DE RESUMO */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+        .stat-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-bottom: 4px solid var(--primary); }
+        .stat-card h3 { margin: 0; font-size: 0.9rem; color: #64748b; text-transform: uppercase; }
+        .stat-card .value { font-size: 2rem; font-weight: 800; margin: 10px 0; }
+
+        /* LISTA DE LEMBRETES */
+        .data-table-container { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 25px; }
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; border-bottom: 2px solid #f1f5f9; color: #64748b; font-size: 0.85rem; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        
+        .badge-status { padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .status-hoje { background: #fef3c7; color: #92400e; }
+        .status-vencido { background: #fee2e2; color: #b91c1c; }
+
+        .btn-whatsapp { background: var(--success); color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+        .btn-whatsapp:hover { opacity: 0.9; }
+
+        .btn-add { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            S<span style="border: 2px solid var(--secondary); border-radius: 50%; width: 25px; height: 25px; display: inline-block; position: relative;"><small style="position: absolute; top: 2px; left: 10px; width: 2px; height: 8px; background: var(--secondary);"></small></span>UEDY
+        </div>
+        <div class="nav-links">
+            <a href="#" class="nav-item active"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="#" class="nav-item"><i class="fas fa-users"></i> Meus Clientes</a>
+            <a href="#" class="nav-item"><i class="fas fa-calendar-alt"></i> Calendário</a>
+            <a href="#" class="nav-item"><i class="fas fa-comment-dots"></i> Mensagens Prontas</a>
+            <a href="#" class="nav-item"><i class="fas fa-cog"></i> Configurações</a>
+        </div>
+        <div style="padding: 20px; border-top: 1px solid #1e293b;">
+            <a href="#" class="nav-item"><i class="fas fa-sign-out-alt"></i> Sair</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header-top">
+            <div>
+                <h1 style="margin: 0;">Bem-vindo, João! 👋</h1>
+                <p style="color: #64748b; margin-top: 5px;">Você tem 4 clientes aguardando contato hoje.</p>
+            </div>
+            <button class="btn-add"><i class="fas fa-plus"></i> Novo Cliente</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Clientes Ativos</h3>
+                <div class="value">142</div>
+            </div>
+            <div class="stat-card" style="border-color: var(--secondary);">
+                <h3>Lembretes Hoje</h3>
+                <div class="value">04</div>
+            </div>
+            <div class="stat-card" style="border-color: var(--success);">
+                <h3>Vendas Recuperadas</h3>
+                <div class="value">28</div>
+            </div>
+        </div>
+
+        <div class="data-table-container">
+            <div class="table-header">
+                <h2 style="font-size: 1.1rem; margin: 0;">Lembretes Prioritários</h2>
+                <input type="text" placeholder="Buscar cliente..." style="padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>CLIENTE</th>
+                        <th>MOTIVO</th>
+                        <th>DATA REF.</th>
+                        <th>STATUS</th>
+                        <th>AÇÃO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Ricardo Silva</strong><br><small>(11) 98888-0000</small></td>
+                        <td>Vencimento de Apólice</td>
+                        <td>10/01/2026</td>
+                        <td><span class="badge-status status-hoje">HOJE</span></td>
+                        <td><a href="#" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Enviar Lembrete</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ana Maria</strong><br><small>(21) 97777-1111</small></td>
+                        <td>Retorno de 6 meses</td>
+                        <td>10/01/2026</td>
+                        <td><span class="badge-status status-hoje">HOJE</span></td>
+                        <td><a href="#" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Enviar Lembrete</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Oficina do Gugu</strong><br><small>(31) 96666-2222</small></td>
+                        <td>Renovação Semestral</td>
+                        <td>08/01/2026</td>
+                        <td><span class="badge-status status-vencido">ATRASADO</span></td>
+                        <td><a href="#" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Enviar Lembrete</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Carla Peixoto</strong><br><small>(11) 95555-3333</small></td>
+                        <td>Aniversário</td>
+                        <td>10/01/2026</td>
+                        <td><span class="badge-status status-hoje">HOJE</span></td>
+                        <td><a href="#" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Mandar Parabéns</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>

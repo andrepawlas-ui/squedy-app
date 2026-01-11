@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Seguro - Squedy App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #f59e0b;
+            --success: #22c55e;
+            --gray: #64748b;
+            --bg: #f1f5f9;
+        }
+
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
+        
+        .checkout-container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
+
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        
+        h2 { margin-top: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .logo-text { color: var(--primary); font-weight: 800; }
+
+        /* FORMULÁRIO */
+        .input-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+        input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        /* RESUMO E SEGURANÇA */
+        .order-summary { background: #fff; border-top: 4px solid var(--primary); }
+        .item-price { display: flex; justify-content: space-between; margin: 15px 0; font-weight: 500; }
+        .total { border-top: 1px solid #e2e8f0; padding-top: 15px; font-size: 1.2rem; font-weight: 800; color: var(--primary); }
+
+        .guarantee-box { background: #ecfdf5; border: 1px dashed var(--success); padding: 15px; border-radius: 8px; margin-top: 20px; display: flex; gap: 15px; align-items: center; }
+        .guarantee-box i { font-size: 2rem; color: var(--success); }
+        .guarantee-text { font-size: 0.85rem; color: #065f46; }
+
+        .security-badges { display: flex; justify-content: space-between; margin-top: 20px; opacity: 0.7; }
+        .badge { font-size: 0.7rem; text-align: center; }
+        .badge i { display: block; font-size: 1.2rem; margin-bottom: 5px; }
+
+        .btn-pay { width: 100%; background: var(--success); color: white; padding: 18px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 20px; }
+        .btn-pay:hover { background: #16a34a; transform: translateY(-2px); }
+
+        @media (max-width: 768px) { .checkout-container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div style="text-align:center; margin-bottom: 30px;">
+        <h1 class="logo-text">SQUEDY <span style="color:var(--secondary)">CHECKOUT</span></h1>
+        <p><i class="fas fa-lock"></i> Ambiente 100% Seguro e Criptografado</p>
+    </div>
+
+    <div class="checkout-container">
+        <div class="card">
+            <h2><i class="fas fa-user-shield"></i> Dados de Acesso</h2>
+            <div class="input-group">
+                <label>Nome Completo / Razão Social</label>
+                <input type="text" placeholder="Como devemos te chamar?">
+            </div>
+            <div class="input-group">
+                <label>E-mail Corporativo (Onde receberá o acesso)</label>
+                <input type="email" placeholder="seu@email.com">
+            </div>
+
+            <h2 style="margin-top: 40px;"><i class="fas fa-credit-card"></i> Forma de Pagamento</h2>
+            <div class="input-group">
+                <label>Número do Cartão ou Chave PIX</label>
+                <input type="text" placeholder="0000 0000 0000 0000">
+            </div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Validade</label>
+                    <input type="text" placeholder="MM/AA">
+                </div>
+                <div class="input-group">
+                    <label>CVV</label>
+                    <input type="text" placeholder="123">
+                </div>
+            </div>
+            <button class="btn-pay">FINALIZAR ASSINATURA AGORA</button>
+        </div>
+
+        <div>
+            <div class="card order-summary">
+                <h2>Resumo do Plano</h2>
+                <div class="item-price">
+                    <span>Plano Business Pro (Mensal)</span>
+                    <span>R$ 97,00</span>
+                </div>
+                <div class="item-price">
+                    <span>Taxa de Ativação</span>
+                    <span style="color:var(--success)">GRÁTIS</span>
+                </div>
+                <div class="item-price total">
+                    <span>TOTAL HOJE</span>
+                    <span>R$ 97,00</span>
+                </div>
+
+                <div class="guarantee-box">
+                    <i class="fas fa-shield-heart"></i>
+                    <div class="guarantee-text">
+                        <strong>RISCO ZERO: Garantia Incondicional</strong><br>
+                        Teste por 7 dias. Se o Squedy não ajudar seu negócio, devolvemos 100% do seu dinheiro sem perguntas.
+                    </div>
+                </div>
+
+                <div class="security-badges">
+                    <div class="badge"><i class="fas fa-check-double"></i>SSL Ativo</div>
+                    <div class="badge"><i class="fas fa-user-lock"></i>Dados Protegidos</div>
+                    <div class="badge"><i class="fas fa-university"></i>PIX ou Cartão</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; font-size: 0.8rem; color: var(--gray); text-align: center;">
+                <p><i class="fas fa-info-circle"></i> Ao assinar, você concorda com nossos Termos de Uso. O cancelamento pode ser feito a qualquer momento pelo painel.</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
