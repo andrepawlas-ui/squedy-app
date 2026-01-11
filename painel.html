@@ -136,6 +136,8 @@
 
     async function carregarDados() {
         try {
+			// Atualiza o card de resumo com a quantidade de itens pendentes
+			document.querySelector('.card-info h2').innerText = data.length.toString().padStart(2, '0');
             // Busca dados das tabelas reminders e clients
             const { data, error } = await _supabase
                 .from('reminders')
