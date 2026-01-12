@@ -226,7 +226,7 @@
 
         async function salvarAgendamento() {
             const nome = document.getElementById('new_name').value;
-            const fone = document.getElementById('new_phone').value;
+			const fone = document.getElementById('new_phone').value.replace(/\D/g, '');
             const titulo = document.getElementById('new_title').value;
             const dataRef = document.getElementById('new_date').value;
             let msg = document.getElementById('new_msg').value;
