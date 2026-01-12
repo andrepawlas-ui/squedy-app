@@ -14,20 +14,22 @@
             --danger: #ef4444;
             --bg: #f8fafc;
             --text: #1e293b;
+            --dark-blue: #0f172a;
         }
 
         body { font-family: 'Inter', sans-serif; margin: 0; display: flex; background: var(--bg); color: var(--text); }
 
         /* SIDEBAR */
-        .sidebar { width: var(--sidebar-width); background: #0f172a; height: 100vh; color: white; position: fixed; display: flex; flex-direction: column; }
+        .sidebar { width: var(--sidebar-width); background: var(--dark-blue); height: 100vh; color: white; position: fixed; display: flex; flex-direction: column; z-index: 100; }
         .sidebar-header { padding: 30px; font-size: 1.5rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; }
         .nav-links { flex: 1; padding: 20px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: #94a3b8; text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: 0.3s; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: #94a3b8; text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: 0.3s; cursor: pointer; }
         .nav-item:hover, .nav-item.active { background: #1e293b; color: white; }
         .nav-item.active { border-left: 4px solid var(--secondary); }
 
         /* MAIN CONTENT */
-        .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; }
+        .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; box-sizing: border-box; }
+        
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         
         /* CARDS DE RESUMO */
@@ -36,23 +38,34 @@
         .stat-card h3 { margin: 0; font-size: 0.9rem; color: #64748b; text-transform: uppercase; }
         .stat-card .value { font-size: 2rem; font-weight: 800; margin: 10px 0; }
 
-        /* LISTA DE LEMBRETES */
+        /* TABELA */
         .data-table-container { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 25px; }
         .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 15px; border-bottom: 2px solid #f1f5f9; color: #64748b; font-size: 0.85rem; }
         td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         
-        .badge-status { padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .badge-status { padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
         .status-hoje { background: #fef3c7; color: #92400e; }
-        .status-vencido { background: #fee2e2; color: #b91c1c; }
 
-        .btn-whatsapp { background: var(--success); color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
-        .btn-whatsapp:hover { opacity: 0.9; }
+        .btn-whatsapp { background: var(--success); color: white; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border: none; cursor: pointer; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; }
 
-        .btn-add { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        /* MODAL ESTILIZADO */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 2rem; border-radius: 1.5rem; width: 100%; max-width: 450px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: modalIn 0.3s ease-out; }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-header { margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: #64748b; }
+        .form-group input, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; box-sizing: border-box; font-family: inherit; }
+        .modal-footer { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; flex: 2; font-weight: 600; }
+        .btn-cancel { background: #f1f5f9; color: #64748b; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; flex: 1; font-weight: 600; }
 
         @media (max-width: 1024px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; width: 100%; padding: 20px; }
             .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -64,11 +77,11 @@
             S<span style="border: 2px solid var(--secondary); border-radius: 50%; width: 25px; height: 25px; display: inline-block; position: relative;"><small style="position: absolute; top: 2px; left: 10px; width: 2px; height: 8px; background: var(--secondary);"></small></span>UEDY
         </div>
         <div class="nav-links">
-            <a href="#" class="nav-item active"><i class="fas fa-home"></i> Dashboard</a>
-            <a href="#" class="nav-item"><i class="fas fa-users"></i> Meus Clientes</a>
-            <a href="#" class="nav-item"><i class="fas fa-calendar-alt"></i> Calendário</a>
-            <a href="#" class="nav-item"><i class="fas fa-comment-dots"></i> Mensagens Prontas</a>
-            <a href="#" class="nav-item"><i class="fas fa-cog"></i> Configurações</a>
+            <a class="nav-item active"><i class="fas fa-home"></i> Dashboard</a>
+            <a class="nav-item"><i class="fas fa-users"></i> Meus Clientes</a>
+            <a class="nav-item"><i class="fas fa-calendar-alt"></i> Calendário</a>
+            <a class="nav-item"><i class="fas fa-comment-dots"></i> Mensagens Prontas</a>
+            <a class="nav-item"><i class="fas fa-cog"></i> Configurações</a>
         </div>
         <div style="padding: 20px; border-top: 1px solid #1e293b;">
             <a href="index.html" class="nav-item"><i class="fas fa-sign-out-alt"></i> Sair</a>
@@ -78,24 +91,24 @@
     <div class="main-content">
         <div class="header-top">
             <div>
-                <h1 style="margin: 0;">Bem-vindo, João! 👋</h1>
-                <p style="color: #64748b; margin-top: 5px;">Você tem 4 clientes aguardando contato hoje.</p>
+                <h1 style="margin: 0;">Painel de Controle 👋</h1>
+                <p style="color: #64748b; margin-top: 5px;">Gerencie seus agendamentos e lembretes.</p>
             </div>
-            <button class="btn-add"><i class="fas fa-plus"></i> Novo Cliente</button>
+            <button onclick="abrirModal()" class="btn-add"><i class="fas fa-plus"></i> Novo Agendamento</button>
         </div>
 
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Clientes Ativos</h3>
-                <div class="value">142</div>
+                <div id="count-clients" class="value">0</div>
             </div>
             <div class="stat-card" style="border-color: var(--secondary);">
-                <h3>Lembretes Hoje</h3>
-                <div class="value">04</div>
+                <h3>Lembretes Pendentes</h3>
+                <div id="count-pending" class="value">0</div>
             </div>
             <div class="stat-card" style="border-color: var(--success);">
-                <h3>Vendas Recuperadas</h3>
-                <div class="value">28</div>
+                <h3>Total Geral</h3>
+                <div id="count-total" class="value">0</div>
             </div>
         </div>
 
@@ -104,160 +117,146 @@
                 <h2 style="font-size: 1.1rem; margin: 0;">Lembretes Prioritários</h2>
                 <input type="text" placeholder="Buscar cliente..." style="padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
             </div>
-				   <table class="reminders-table">
-			<thead>
-				<tr>
-					<th>CLIENTE</th>
-					<th>MOTIVO</th>
-					<th>DATA REF.</th>
-					<th>STATUS</th>
-					<th>AÇÃO</th>
-				</tr>
-			</thead>
-			<tbody>
-				</tbody>
-		</table>
+            <table>
+                <thead>
+                    <tr>
+                        <th>CLIENTE</th>
+                        <th>MOTIVO</th>
+                        <th>DATA REF.</th>
+                        <th>STATUS</th>
+                        <th>AÇÃO</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-corpo">
+                    </tbody>
+            </table>
         </div>
     </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-    // Configurações do seu projeto
-    const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_EJIgtPIhhfnIyaALnIw0JQ_r6Kc6cbp'; // Cole a chave 'sb_publishable' aqui
 
-    // Inicialização otimizada para evitar bloqueios de navegador
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: {
-            persistSession: false, // Resolve o erro de "blocked access to storage"
-            autoRefreshToken: false,
-            detectSessionInUrl: false
-        }
-    });
+    <div id="modalAgendamento" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Novo Agendamento</h3></div>
+            <div class="form-group">
+                <label>Nome do Cliente</label>
+                <input type="text" id="new_name" placeholder="Ex: Maria da Silva">
+            </div>
+            <div class="form-group">
+                <label>WhatsApp</label>
+                <input type="text" id="new_phone" placeholder="Ex: 5511988887777">
+            </div>
+            <div class="form-group">
+                <label>Serviço / Motivo</label>
+                <input type="text" id="new_title" placeholder="Ex: Revisão de Carro">
+            </div>
+            <div class="form-group">
+                <label>Data de Vencimento</label>
+                <input type="date" id="new_date">
+            </div>
+            <div class="form-group">
+                <label>Mensagem Personalizada</label>
+                <textarea id="new_msg" rows="3">Olá {name}, seu serviço de {title} vence dia {date}. Podemos agendar?</textarea>
+            </div>
+            <div class="modal-footer">
+                <button onclick="fecharModal()" class="btn-cancel">Cancelar</button>
+                <button onclick="salvarAgendamento()" class="btn-save">Salvar</button>
+            </div>
+        </div>
+    </div>
 
-    async function carregarDados() {
-        try {
-			// Atualiza o card de resumo com a quantidade de itens pendentes
-			document.querySelector('.card-info h2').innerText = data.length.toString().padStart(2, '0');
-            // Busca dados das tabelas reminders e clients
-            const { data, error } = await _supabase
-                .from('reminders')
-                .select(`
-                    id,
-                    title,
-                    event_date,
-                    status,
-                    message_template,
-                    clients (name, phone)
-                `);
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_EJIgtPIhhfnIyaALnIw0JQ_r6Kc6cbp'; 
 
-            if (error) throw error;
-
-            const tbody = document.querySelector('table tbody');
-            tbody.innerHTML = ''; // Limpa os dados de exemplo (Ricardo, Ana, etc.)
-
-            if (!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum lembrete encontrado no banco.</td></tr>';
-                return;
-            }
-
-            data.forEach(item => {
-                const dataFormatada = new Date(item.event_date).toLocaleDateString('pt-BR');
-                const nomeCliente = item.clients?.name || 'Cliente';
-                const foneCliente = item.clients?.phone || '';
-                
-                // Monta a mensagem personalizada do WhatsApp
-                const msgFinal = item.message_template.replace('{name}', nomeCliente);
-                const linkWa = `https://wa.me/${foneCliente}?text=${encodeURIComponent(msgFinal)}`;
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${nomeCliente}</strong><br><small>${foneCliente}</small></td>
-                        <td>${item.title}</td>
-                        <td>${dataFormatada}</td>
-                        <td><span class="badge-status status-hoje">${item.status.toUpperCase()}</span></td>
-                        <td><a href="${linkWa}" target="_blank" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Enviar</a></td>
-                    </tr>
-                `;
-            });
-        } catch (err) {
-            console.error('Erro ao conectar com Supabase:', err.message);
-        }
-    }
-
-    carregarDados();
-// 1. Nova função para atualizar o status no Supabase
-async function marcarComoEnviado(id) {
-    try {
-        const { error } = await _supabase
-            .from('reminders')
-            .update({ status: 'sent' }) // Muda para enviado
-            .eq('id', id);
-
-        if (error) throw error;
-        
-        // Recarrega a tabela para o cliente sumir da lista de pendentes
-        carregarDados(); 
-    } catch (err) {
-        console.error('Erro ao atualizar status:', err.message);
-    }
-}
-
-async function carregarDados() {
-    try {
-        // Buscamos apenas os que ainda estão PENDING
-        const { data, error } = await _supabase
-            .from('reminders')
-            .select(`
-                id,
-                title,
-                event_date,
-                status,
-                message_template,
-                clients (name, phone)
-            `)
-            .eq('status', 'pending'); // Filtro para não mostrar o que já foi enviado
-
-        if (error) throw error;
-
-        const tbody = document.querySelector('table tbody');
-        tbody.innerHTML = '';
-
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">🎉 Tudo em dia! Nenhum lembrete pendente.</td></tr>';
-            return;
-        }
-
-        data.forEach(item => {
-            const dataFormatada = new Date(item.event_date).toLocaleDateString('pt-BR');
-            const nomeCliente = item.clients?.name || 'Cliente';
-            const foneCliente = item.clients?.phone || '';
-            const msgFinal = item.message_template.replace('{name}', nomeCliente);
-            const linkWa = `https://wa.me/${foneCliente}?text=${encodeURIComponent(msgFinal)}`;
-
-            // Adicionamos o "onclick" para disparar a atualização
-            tbody.innerHTML += `
-                <tr>
-                    <td><strong>${nomeCliente}</strong><br><small>${foneCliente}</small></td>
-                    <td>${item.title}</td>
-                    <td>${dataFormatada}</td>
-                    <td><span class="badge-status status-hoje">${item.status.toUpperCase()}</span></td>
-                    <td>
-                        <a href="${linkWa}" 
-                           target="_blank" 
-                           class="btn-whatsapp" 
-                           onclick="marcarComoEnviado('${item.id}')">
-                           <i class="fab fa-whatsapp"></i> Enviar
-                        </a>
-                    </td>
-                </tr>
-            `;
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
         });
-    } catch (err) {
-        console.error('Erro ao conectar com Supabase:', err.message);
-    }
-}
 
-carregarDados();
-</script>
+        function abrirModal() { document.getElementById('modalAgendamento').style.display = 'flex'; }
+        function fecharModal() { document.getElementById('modalAgendamento').style.display = 'none'; }
+
+        async function carregarDados() {
+            try {
+                // 1. Busca contagens para os cards
+                const { count: countTotal } = await _supabase.from('reminders').select('*', { count: 'exact', head: true });
+                const { count: countPending } = await _supabase.from('reminders').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+                const { count: countClients } = await _supabase.from('clients').select('*', { count: 'exact', head: true });
+
+                document.getElementById('count-total').innerText = countTotal || 0;
+                document.getElementById('count-pending').innerText = countPending || 0;
+                document.getElementById('count-clients').innerText = countClients || 0;
+
+                // 2. Busca lembretes pendentes
+                const { data, error } = await _supabase
+                    .from('reminders')
+                    .select('id, title, event_date, status, message_template, clients(name, phone)')
+                    .eq('status', 'pending')
+                    .order('event_date', { ascending: true });
+
+                if (error) throw error;
+
+                const tbody = document.getElementById('tabela-corpo');
+                tbody.innerHTML = data.length === 0 ? '<tr><td colspan="5" style="text-align:center;">🎉 Tudo em dia!</td></tr>' : '';
+
+                data.forEach(item => {
+                    const dataFormatada = new Date(item.event_date).toLocaleDateString('pt-BR');
+                    const linkWa = `https://wa.me/${item.clients?.phone}?text=${encodeURIComponent(item.message_template)}`;
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${item.clients?.name}</strong><br><small>${item.clients?.phone}</small></td>
+                            <td>${item.title}</td>
+                            <td>${dataFormatada}</td>
+                            <td><span class="badge-status status-hoje">${item.status}</span></td>
+                            <td>
+                                <a href="${linkWa}" target="_blank" class="btn-whatsapp" onclick="marcarComoEnviado('${item.id}')">
+                                    <i class="fab fa-whatsapp"></i> Enviar
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) { console.error('Erro:', err.message); }
+        }
+
+        async function marcarComoEnviado(id) {
+            await _supabase.from('reminders').update({ status: 'sent' }).eq('id', id);
+            setTimeout(carregarDados, 2000); // Aguarda o usuário abrir o zap e atualiza
+        }
+
+        async function salvarAgendamento() {
+            const nome = document.getElementById('new_name').value;
+            const fone = document.getElementById('new_phone').value;
+            const titulo = document.getElementById('new_title').value;
+            const dataRef = document.getElementById('new_date').value;
+            let msg = document.getElementById('new_msg').value;
+
+            if(!nome || !fone || !dataRef) return alert("Preencha os campos obrigatórios.");
+
+            try {
+                // Upsert do cliente
+                const { data: cliente, error: errC } = await _supabase.from('clients').upsert({ name: nome, phone: fone }, { onConflict: 'phone' }).select().single();
+                if (errC) throw errC;
+
+                // Template da mensagem
+                msg = msg.replace('{name}', nome).replace('{title}', titulo).replace('{date}', new Date(dataRef).toLocaleDateString('pt-BR'));
+
+                // Inserir lembrete
+                const { error: errR } = await _supabase.from('reminders').insert({
+                    client_id: cliente.id,
+                    title: titulo,
+                    event_date: dataRef,
+                    message_template: msg,
+                    status: 'pending'
+                });
+                if (errR) throw errR;
+
+                fecharModal();
+                carregarDados();
+            } catch (err) { alert("Erro ao salvar: " + err.message); }
+        }
+
+        window.onload = carregarDados;
+    </script>
 </body>
 </html>
