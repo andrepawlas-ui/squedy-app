@@ -175,9 +175,9 @@
         function abrirModal() { document.getElementById('modalAgendamento').style.display = 'flex'; }
         function fecharModal() { document.getElementById('modalAgendamento').style.display = 'none'; }
 
+        // AJUSTE 2: Função carregarDados com correção de fuso horário brasileiro
         async function carregarDados() {
             try {
-                // 1. Busca contagens para os cards
                 const { count: countTotal } = await _supabase.from('reminders').select('*', { count: 'exact', head: true });
                 const { count: countPending } = await _supabase.from('reminders').select('*', { count: 'exact', head: true }).eq('status', 'pending');
                 const { count: countClients } = await _supabase.from('clients').select('*', { count: 'exact', head: true });
@@ -186,7 +186,6 @@
                 document.getElementById('count-pending').innerText = countPending || 0;
                 document.getElementById('count-clients').innerText = countClients || 0;
 
-                // 2. Busca lembretes pendentes
                 const { data, error } = await _supabase
                     .from('reminders')
                     .select('id, title, event_date, status, message_template, clients(name, phone)')
@@ -199,7 +198,10 @@
                 tbody.innerHTML = data.length === 0 ? '<tr><td colspan="5" style="text-align:center;">🎉 Tudo em dia!</td></tr>' : '';
 
                 data.forEach(item => {
-                    const dataFormatada = new Date(item.event_date).toLocaleDateString('pt-BR');
+                    // Forçamos o meio-dia (T12:00:00) para garantir que a data não retroceda no fuso horário local
+                    const dataObj = new Date(item.event_date + 'T12:00:00');
+                    const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                    
                     const linkWa = `https://wa.me/${item.clients?.phone}?text=${encodeURIComponent(item.message_template)}`;
 
                     tbody.innerHTML += `
@@ -221,12 +223,13 @@
 
         async function marcarComoEnviado(id) {
             await _supabase.from('reminders').update({ status: 'sent' }).eq('id', id);
-            setTimeout(carregarDados, 2000); // Aguarda o usuário abrir o zap e atualiza
+            setTimeout(carregarDados, 2000); 
         }
 
+        // AJUSTE 1: Função salvarAgendamento com correção de fuso horário brasileiro
         async function salvarAgendamento() {
             const nome = document.getElementById('new_name').value;
-			const fone = document.getElementById('new_phone').value.replace(/\D/g, '');
+            const fone = document.getElementById('new_phone').value.replace(/\D/g, '');
             const titulo = document.getElementById('new_title').value;
             const dataRef = document.getElementById('new_date').value;
             let msg = document.getElementById('new_msg').value;
@@ -234,14 +237,15 @@
             if(!nome || !fone || !dataRef) return alert("Preencha os campos obrigatórios.");
 
             try {
-                // Upsert do cliente
                 const { data: cliente, error: errC } = await _supabase.from('clients').upsert({ name: nome, phone: fone }, { onConflict: 'phone' }).select().single();
                 if (errC) throw errC;
 
-                // Template da mensagem
-                msg = msg.replace('{name}', nome).replace('{title}', titulo).replace('{date}', new Date(dataRef).toLocaleDateString('pt-BR'));
+                // TRUQUE DO FUSO HORÁRIO: Garantimos que a data na mensagem seja a mesma selecionada no calendário
+                const dataObj = new Date(dataRef + 'T12:00:00');
+                const dataFormatadaBrasil = dataObj.toLocaleDateString('pt-BR');
 
-                // Inserir lembrete
+                msg = msg.replace('{name}', nome).replace('{title}', titulo).replace('{date}', dataFormatadaBrasil);
+
                 const { error: errR } = await _supabase.from('reminders').insert({
                     client_id: cliente.id,
                     title: titulo,
