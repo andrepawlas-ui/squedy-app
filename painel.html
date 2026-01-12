@@ -39,7 +39,7 @@
         .stat-card .value { font-size: 2rem; font-weight: 800; margin: 10px 0; }
 
         /* TABELA */
-        .data-table-container { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 25px; }
+        .data-table-container { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 25px; margin-bottom: 20px; }
         .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 15px; border-bottom: 2px solid #f1f5f9; color: #64748b; font-size: 0.85rem; }
@@ -77,8 +77,8 @@
             S<span style="border: 2px solid var(--secondary); border-radius: 50%; width: 25px; height: 25px; display: inline-block; position: relative;"><small style="position: absolute; top: 2px; left: 10px; width: 2px; height: 8px; background: var(--secondary);"></small></span>UEDY
         </div>
         <div class="nav-links">
-            <a class="nav-item active"><i class="fas fa-home"></i> Dashboard</a>
-            <a class="nav-item"><i class="fas fa-users"></i> Meus Clientes</a>
+            <a id="menu-lembretes" class="nav-item active" onclick="mudarAba('lembretes')"><i class="fas fa-home"></i> Dashboard</a>
+            <a id="menu-clientes" class="nav-item" onclick="mudarAba('clientes')"><i class="fas fa-users"></i> Meus Clientes</a>
             <a class="nav-item"><i class="fas fa-calendar-alt"></i> Calendário</a>
             <a class="nav-item"><i class="fas fa-comment-dots"></i> Mensagens Prontas</a>
             <a class="nav-item"><i class="fas fa-cog"></i> Configurações</a>
@@ -97,39 +97,61 @@
             <button onclick="abrirModal()" class="btn-add"><i class="fas fa-plus"></i> Novo Agendamento</button>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Clientes Ativos</h3>
-                <div id="count-clients" class="value">0</div>
+        <div id="secao-lembretes" class="aba-conteudo">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Clientes Ativos</h3>
+                    <div id="count-clients" class="value">0</div>
+                </div>
+                <div class="stat-card" style="border-color: var(--secondary);">
+                    <h3>Lembretes Pendentes</h3>
+                    <div id="count-pending" class="value">0</div>
+                </div>
+                <div class="stat-card" style="border-color: var(--success);">
+                    <h3>Total Geral</h3>
+                    <div id="count-total" class="value">0</div>
+                </div>
             </div>
-            <div class="stat-card" style="border-color: var(--secondary);">
-                <h3>Lembretes Pendentes</h3>
-                <div id="count-pending" class="value">0</div>
-            </div>
-            <div class="stat-card" style="border-color: var(--success);">
-                <h3>Total Geral</h3>
-                <div id="count-total" class="value">0</div>
+
+            <div class="data-table-container">
+                <div class="table-header">
+                    <h2 style="font-size: 1.1rem; margin: 0;">Lembretes Prioritários</h2>
+                    <input type="text" placeholder="Buscar cliente..." style="padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>CLIENTE</th>
+                            <th>MOTIVO</th>
+                            <th>DATA VENC.</th>
+                            <th>STATUS</th>
+                            <th>AÇÃO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-corpo">
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <div class="data-table-container">
-            <div class="table-header">
-                <h2 style="font-size: 1.1rem; margin: 0;">Lembretes Prioritários</h2>
-                <input type="text" placeholder="Buscar cliente..." style="padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+        <div id="secao-clientes" class="aba-conteudo" style="display:none;">
+            <div class="data-table-container">
+                <div class="table-header">
+                    <h2 style="font-size: 1.1rem; margin: 0;">Minha Base de Clientes</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>NOME COMPLETO</th>
+                            <th>WHATSAPP</th>
+                            <th>CADASTRADO EM</th>
+                            <th>AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-clientes-corpo">
+                        </tbody>
+                </table>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>CLIENTE</th>
-                        <th>MOTIVO</th>
-                        <th>DATA REF.</th>
-                        <th>STATUS</th>
-                        <th>AÇÃO</th>
-                    </tr>
-                </thead>
-                <tbody id="tabela-corpo">
-                    </tbody>
-            </table>
         </div>
     </div>
 
@@ -175,7 +197,51 @@
         function abrirModal() { document.getElementById('modalAgendamento').style.display = 'flex'; }
         function fecharModal() { document.getElementById('modalAgendamento').style.display = 'none'; }
 
-        // AJUSTE 2: Função carregarDados com correção de fuso horário brasileiro
+        // AJUSTE 2: Lógica para Alternar entre as Telas
+        function mudarAba(idAba) {
+            // Esconde todas as seções
+            document.querySelectorAll('.aba-conteudo').forEach(aba => aba.style.display = 'none');
+            // Remove destaque de todos os menus
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            
+            // Mostra a seção desejada e destaca o menu
+            document.getElementById('secao-' + idAba).style.display = 'block';
+            document.getElementById('menu-' + idAba).classList.add('active');
+
+            if(idAba === 'clientes') carregarListaClientes();
+            if(idAba === 'lembretes') carregarDados();
+        }
+
+        async function carregarListaClientes() {
+            try {
+                const { data, error } = await _supabase
+                    .from('clients')
+                    .select('*')
+                    .order('name', { ascending: true });
+
+                if (error) throw error;
+
+                const tbody = document.getElementById('tabela-clientes-corpo');
+                tbody.innerHTML = '';
+
+                data.forEach(cliente => {
+                    const dataFormatada = new Date(cliente.created_at).toLocaleDateString('pt-BR');
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${cliente.name}</strong></td>
+                            <td>${cliente.phone}</td>
+                            <td>${dataFormatada}</td>
+                            <td>
+                                <button class="btn-whatsapp" style="background:var(--primary); padding: 5px 10px;">
+                                    <i class="fas fa-eye"></i> Perfil
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) { console.error('Erro ao carregar clientes:', err.message); }
+        }
+
         async function carregarDados() {
             try {
                 const { count: countTotal } = await _supabase.from('reminders').select('*', { count: 'exact', head: true });
@@ -198,10 +264,8 @@
                 tbody.innerHTML = data.length === 0 ? '<tr><td colspan="5" style="text-align:center;">🎉 Tudo em dia!</td></tr>' : '';
 
                 data.forEach(item => {
-                    // Forçamos o meio-dia (T12:00:00) para garantir que a data não retroceda no fuso horário local
                     const dataObj = new Date(item.event_date + 'T12:00:00');
                     const dataFormatada = dataObj.toLocaleDateString('pt-BR');
-                    
                     const linkWa = `https://wa.me/${item.clients?.phone}?text=${encodeURIComponent(item.message_template)}`;
 
                     tbody.innerHTML += `
@@ -226,7 +290,6 @@
             setTimeout(carregarDados, 2000); 
         }
 
-        // AJUSTE 1: Função salvarAgendamento com correção de fuso horário brasileiro
         async function salvarAgendamento() {
             const nome = document.getElementById('new_name').value;
             const fone = document.getElementById('new_phone').value.replace(/\D/g, '');
@@ -240,10 +303,8 @@
                 const { data: cliente, error: errC } = await _supabase.from('clients').upsert({ name: nome, phone: fone }, { onConflict: 'phone' }).select().single();
                 if (errC) throw errC;
 
-                // TRUQUE DO FUSO HORÁRIO: Garantimos que a data na mensagem seja a mesma selecionada no calendário
                 const dataObj = new Date(dataRef + 'T12:00:00');
                 const dataFormatadaBrasil = dataObj.toLocaleDateString('pt-BR');
-
                 msg = msg.replace('{name}', nome).replace('{title}', titulo).replace('{date}', dataFormatadaBrasil);
 
                 const { error: errR } = await _supabase.from('reminders').insert({
