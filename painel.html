@@ -241,7 +241,60 @@
             if(idAba === 'mensagens') carregarTemplates();
             if(idAba === 'configuracoes') carregarConfiguracoes();
         }
-		        // FILTROS
+function inicializarCalendario() {
+    const calendarEl = document.getElementById('calendar');
+    
+    // Se o calendário já existe, apenas força o redimensionamento e para aqui
+    if (calendar) { 
+        calendar.updateSize();
+        return; 
+    }
+
+    // Criar a instância do calendário traduzida
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'pt-br', // Define o idioma para Português
+        buttonText: {
+            today: 'Hoje',
+            month: 'Mês',
+            week: 'Semana',
+            day: 'Dia',
+            list: 'Lista'
+        },
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek'
+        },
+        // Busca os eventos do Supabase
+        events: async function(info, successCallback, failureCallback) {
+            try {
+                const { data, error } = await _supabase
+                    .from('reminders')
+                    .select('title, event_date, status, clients(name)');
+
+                if (error) throw error;
+
+                const evts = data.map(i => ({
+                    title: `${i.clients?.name || 'Cliente'}: ${i.title}`,
+                    start: i.event_date,
+                    // Cor: Verde se enviado, Azul se pendente
+                    backgroundColor: i.status === 'sent' ? '#10b981' : '#2563eb',
+                    borderColor: i.status === 'sent' ? '#10b981' : '#2563eb',
+                    allDay: true
+                }));
+
+                successCallback(evts);
+            } catch (err) {
+                console.error("Erro no calendário:", err);
+                failureCallback(err);
+            }
+        }
+    });
+
+    calendar.render();
+}
+		 // FILTROS
 			function filtrarDashboard() {
             const nome = document.getElementById('filter-nome').value.toLowerCase();
             const motivo = document.getElementById('filter-motivo').value.toLowerCase();
