@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Squedy - Gestão de Lembretes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+
     <style>
         :root {
             --sidebar-width: 260px;
@@ -29,8 +33,12 @@
 
         /* MAIN CONTENT */
         .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; box-sizing: border-box; }
-        
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+		
+		/* FILTROS */
+        .filter-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        .filter-container input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; flex: 1; font-family: inherit; }
+
         
         /* CARDS DE RESUMO */
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
@@ -38,7 +46,7 @@
         .stat-card h3 { margin: 0; font-size: 0.9rem; color: #64748b; text-transform: uppercase; }
         .stat-card .value { font-size: 2rem; font-weight: 800; margin: 10px 0; }
 
-        /* TABELA */
+        /* TABELAS */
         .data-table-container { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 25px; margin-bottom: 20px; }
         .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; }
@@ -47,18 +55,18 @@
         
         .badge-status { padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
         .status-hoje { background: #fef3c7; color: #92400e; }
-
-        .btn-whatsapp { background: var(--success); color: white; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border: none; cursor: pointer; }
+		.btn-ignore { background: #94a3b8; color: white; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 5px; font-weight: 600; border: none; cursor: pointer; }
+		.btn-email { background: var(--info); color: white; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 5px; font-weight: 600; border: none; cursor: pointer; }
+        .btn-whatsapp { background: var(--success); color: white; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border: none; cursor: pointer; }
         .btn-add { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; }
 
-        /* MODAL ESTILIZADO */
+        /* MODAIS */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); z-index: 2000; align-items: center; justify-content: center; }
         .modal-content { background: white; padding: 2rem; border-radius: 1.5rem; width: 100%; max-width: 450px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: modalIn 0.3s ease-out; }
         @keyframes modalIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .modal-header { margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; }
         .form-group { margin-bottom: 1rem; }
         .form-group label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: #64748b; }
-        .form-group input, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; box-sizing: border-box; font-family: inherit; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; box-sizing: border-box; font-family: inherit; }
         .modal-footer { display: flex; gap: 1rem; margin-top: 1.5rem; }
         .btn-save { background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; flex: 2; font-weight: 600; }
         .btn-cancel { background: #f1f5f9; color: #64748b; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; flex: 1; font-weight: 600; }
@@ -73,15 +81,13 @@
 <body>
 
     <div class="sidebar">
-        <div class="sidebar-header">
-            S<span style="border: 2px solid var(--secondary); border-radius: 50%; width: 25px; height: 25px; display: inline-block; position: relative;"><small style="position: absolute; top: 2px; left: 10px; width: 2px; height: 8px; background: var(--secondary);"></small></span>UEDY
-        </div>
+        <div class="sidebar-header" id="sidebar-business-name">SQUEDY</div>
         <div class="nav-links">
             <a id="menu-lembretes" class="nav-item active" onclick="mudarAba('lembretes')"><i class="fas fa-home"></i> Dashboard</a>
             <a id="menu-clientes" class="nav-item" onclick="mudarAba('clientes')"><i class="fas fa-users"></i> Meus Clientes</a>
-            <a class="nav-item"><i class="fas fa-calendar-alt"></i> Calendário</a>
-            <a class="nav-item"><i class="fas fa-comment-dots"></i> Mensagens Prontas</a>
-            <a class="nav-item"><i class="fas fa-cog"></i> Configurações</a>
+            <a id="menu-calendario" class="nav-item" onclick="mudarAba('calendario')"><i class="fas fa-calendar-alt"></i> Calendário</a>
+            <a id="menu-mensagens" class="nav-item" onclick="mudarAba('mensagens')"><i class="fas fa-comment-dots"></i> Mensagens</a>
+            <a id="menu-configuracoes" class="nav-item" onclick="mudarAba('configuracoes')"><i class="fas fa-cog"></i> Configurações</a>
         </div>
         <div style="padding: 20px; border-top: 1px solid #1e293b;">
             <a href="index.html" class="nav-item"><i class="fas fa-sign-out-alt"></i> Sair</a>
@@ -92,75 +98,75 @@
         <div class="header-top">
             <div>
                 <h1 style="margin: 0;">Painel de Controle 👋</h1>
-                <p style="color: #64748b; margin-top: 5px;">Gerencie seus agendamentos e lembretes.</p>
+                <p style="color: #64748b; margin-top: 5px;">Gerencie seus agendamentos.</p>
             </div>
             <button onclick="abrirModal()" class="btn-add"><i class="fas fa-plus"></i> Novo Agendamento</button>
         </div>
 
         <div id="secao-lembretes" class="aba-conteudo">
             <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Clientes Ativos</h3>
-                    <div id="count-clients" class="value">0</div>
-                </div>
-                <div class="stat-card" style="border-color: var(--secondary);">
-                    <h3>Lembretes Pendentes</h3>
-                    <div id="count-pending" class="value">0</div>
-                </div>
-                <div class="stat-card" style="border-color: var(--success);">
-                    <h3>Total Geral</h3>
-                    <div id="count-total" class="value">0</div>
-                </div>
+                <div class="stat-card"><h3>Clientes Ativos</h3><div id="count-clients" class="value">0</div></div>
+                <div class="stat-card" style="border-color: var(--secondary);"><h3>Pendentes</h3><div id="count-pending" class="value">0</div></div>
+                <div class="stat-card" style="border-color: var(--success);"><h3>Total Geral</h3><div id="count-total" class="value">0</div></div>
             </div>
-
+			
+			<div class="filter-container">
+                <input type="text" id="filter-nome" onkeyup="filtrarDashboard()" placeholder="Filtrar por nome...">
+				<input type="text" id="filter-motivo" onkeyup="filtrarDashboard()" placeholder="Filtrar por motivo...">
+            </div>		
             <div class="data-table-container">
-                <div class="table-header">
-                    <h2 style="font-size: 1.1rem; margin: 0;">Lembretes Prioritários</h2>
-                    <input type="text" placeholder="Buscar cliente..." style="padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
-                </div>
+                <div class="table-header"><h2>Lembretes Prioritários</h2></div>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>CLIENTE</th>
-                            <th>MOTIVO</th>
-                            <th>DATA VENC.</th>
-                            <th>STATUS</th>
-                            <th>AÇÃO</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-corpo">
-                    </tbody>
+                    <thead><tr><th>CLIENTE</th><th>MOTIVO</th><th>DATA VENC.</th><th>STATUS</th><th>AÇÃO</th></tr></thead>
+                    <tbody id="tabela-corpo"></tbody>
                 </table>
             </div>
         </div>
 
         <div id="secao-clientes" class="aba-conteudo" style="display:none;">
             <div class="data-table-container">
-                <div class="table-header">
-                    <h2 style="font-size: 1.1rem; margin: 0;">Minha Base de Clientes</h2>
-                </div>
+                <div class="table-header"><h2>Minha Base de Clientes</h2></div>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>NOME COMPLETO</th>
-                            <th>WHATSAPP</th>
-                            <th>CADASTRADO EM</th>
-                            <th>AÇÕES</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-clientes-corpo">
-                        </tbody>
+                    <thead><tr><th>NOME</th><th>WHATSAPP</th><th>CADASTRO</th><th>AÇÕES</th></tr></thead>
+                    <tbody id="tabela-clientes-corpo"></tbody>
                 </table>
+            </div>
+        </div>
+
+        <div id="secao-calendario" class="aba-conteudo" style="display:none;">
+            <div class="data-table-container"><div id='calendar'></div></div>
+        </div>
+
+        <div id="secao-mensagens" class="aba-conteudo" style="display:none;">
+            <div class="data-table-container">
+                <div class="header-top">
+                    <h2>Modelos de Mensagem</h2>
+                    <button onclick="abrirModalTemplate()" class="btn-add"><i class="fas fa-plus"></i> Novo Modelo</button>
+                </div>
+                <div id="grid-templates" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;"></div>
+            </div>
+        </div>
+
+        <div id="secao-configuracoes" class="aba-conteudo" style="display:none;">
+            <div class="data-table-container" style="max-width: 600px;">
+                 <h2>Backup dos Clientes</h2>
+                  <!-- <div class="form-group"><label>Nome da Empresa</label><input type="text" id="config_business_name"></div>
+                <div class="form-group"><label>Nome do Responsável</label><input type="text" id="config_owner_name"></div>
+                <div class="form-group"><label>Rodapé Padrão</label><textarea id="config_footer" rows="2"></textarea></div>
+                <button onclick="salvarConfiguracoes()" class="btn-add" style="width:100%; justify-content:center;">Salvar Ajustes</button>
+                <hr style="margin:20px 0;"> -->
+                <button onclick="exportarExcel()" class="btn-whatsapp" style="width:100%; background:var(--dark-blue); justify-content:center;">Exportar CSV</button>
             </div>
         </div>
     </div>
 
-    <div id="modalAgendamento" class="modal-overlay">
+        <div id="modalAgendamento" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header"><h3>Novo Agendamento</h3></div>
             <div class="form-group">
                 <label>Nome do Cliente</label>
-                <input type="text" id="new_name" placeholder="Ex: Maria da Silva">
+                <input type="text" id="new_name" list="lista-clientes-sugeridos" placeholder="Busque ou digite o nome..." oninput="autoPreencherTelefone(this.value)">
+                <datalist id="lista-clientes-sugeridos"></datalist>
             </div>
             <div class="form-group">
                 <label>WhatsApp</label>
@@ -175,6 +181,12 @@
                 <input type="date" id="new_date">
             </div>
             <div class="form-group">
+                <label>Modelo de Mensagem</label>
+                <select id="select_template" onchange="aplicarTemplate(this.value)">
+                    <option value="">Selecione um modelo...</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label>Mensagem Personalizada</label>
                 <textarea id="new_msg" rows="3">Olá {name}, seu serviço de {title} vence dia {date}. Podemos agendar?</textarea>
             </div>
@@ -184,143 +196,370 @@
             </div>
         </div>
     </div>
-
+	<div id="modalHistorico" class="modal-overlay">
+		<div class="modal-content" style="max-width: 600px;">
+			<h3 id="hist_cliente_nome">Histórico do Cliente</h3>
+			<div style="max-height: 300px; overflow-y: auto; margin: 15px 0;">
+				<table style="font-size: 0.85rem;">
+					<thead>
+						<tr>
+							<th>Data</th>
+							<th>Serviço</th>
+							<th>Status</th>
+						</tr>
+					</thead>
+					<tbody id="tabela-historico-corpo">
+						</tbody>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<button onclick="document.getElementById('modalHistorico').style.display='none'" class="btn-cancel">Fechar</button>
+			</div>
+		</div>
+	</div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
+		let lembretesCache = []; // Guarda os lembretes para busca rápida
+		const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_EJIgtPIhhfnIyaALnIw0JQ_r6Kc6cbp'; 
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
-        });
+        let calendar;
+        let clientesCadastrados = [];
 
-        function abrirModal() { document.getElementById('modalAgendamento').style.display = 'flex'; }
-        function fecharModal() { document.getElementById('modalAgendamento').style.display = 'none'; }
-
-        // AJUSTE 2: Lógica para Alternar entre as Telas
+        // FUNÇÃO PARA MUDAR ABAS
         function mudarAba(idAba) {
-            // Esconde todas as seções
             document.querySelectorAll('.aba-conteudo').forEach(aba => aba.style.display = 'none');
-            // Remove destaque de todos os menus
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             
-            // Mostra a seção desejada e destaca o menu
             document.getElementById('secao-' + idAba).style.display = 'block';
             document.getElementById('menu-' + idAba).classList.add('active');
 
             if(idAba === 'clientes') carregarListaClientes();
             if(idAba === 'lembretes') carregarDados();
+            if(idAba === 'calendario') inicializarCalendario();
+            if(idAba === 'mensagens') carregarTemplates();
+            if(idAba === 'configuracoes') carregarConfiguracoes();
+        }
+		        // FILTROS
+			function filtrarDashboard() {
+            const nome = document.getElementById('filter-nome').value.toLowerCase();
+            const motivo = document.getElementById('filter-motivo').value.toLowerCase();
+            const filtrados = lembretesCache.filter(i => i.clients.name.toLowerCase().includes(nome) && i.title.toLowerCase().includes(motivo));
+            renderizarTabelaLembretes(filtrados);
         }
 
+			function renderizarTabelaLembretes(lista) {
+				const tbody = document.getElementById('tabela-corpo');
+				tbody.innerHTML = lista.length ? '' : '<tr><td colspan="5">Nenhum pendente encontrado.</td></tr>';
+				
+				// Objeto para converter os termos do banco para o que o usuário vê
+				const traducaoStatus = {
+					'pending': 'Pendente',
+					'sent': 'Enviado',
+					'ignored': 'Ignorado'
+				};
+
+				lista.forEach(item => {
+					const linkWa = `https://wa.me/${item.clients?.phone}?text=${encodeURIComponent(item.message_template)}`;
+					const linkEmail = item.clients?.email ? `mailto:${item.clients.email}?subject=Lembrete&body=${encodeURIComponent(item.message_template)}` : '#';
+
+					// Pega o status em português usando o dicionário acima
+					const statusPT = traducaoStatus[item.status] || item.status;
+
+					tbody.innerHTML += `<tr>
+						<td><strong>${item.clients?.name || 'Sem Nome'}</strong></td>
+						<td>${item.title}</td>
+						<td>${new Date(item.event_date + 'T12:00:00').toLocaleDateString()}</td>
+						<td><span class="badge-status status-hoje">${statusPT}</span></td>
+						<td>
+							<div class="action-buttons">
+								<a href="${linkWa}" target="_blank" class="btn-whatsapp" onclick="marcarComoEnviado('${item.id}')"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+								<a href="${linkEmail}" class="btn-email" style="${item.clients?.email ? '' : 'display:none'}" onclick="marcarComoEnviado('${item.id}')"><i class="fas fa-envelope"></i> E-mail</a>
+								<button class="btn-ignore" onclick="ignorarLembrete('${item.id}')"><i class="fas fa-eye-slash"></i> Ignorar</button>
+							</div>
+						</td>
+					</tr>`;
+				});
+			}
+			
+						function filtrarDashboard() {
+				const nomeBusca = document.getElementById('filter-nome').value.toLowerCase();
+				const motivoBusca = document.getElementById('filter-motivo').value.toLowerCase();
+
+				const filtrados = lembretesCache.filter(item => {
+					const nomeOk = (item.clients?.name || '').toLowerCase().includes(nomeBusca);
+					const motivoOk = (item.title || '').toLowerCase().includes(motivoBusca);
+					return nomeOk && motivoOk;
+				});
+
+				renderizarTabelaLembretes(filtrados);
+			}
+        // --- GESTÃO DE CLIENTES ---
         async function carregarListaClientes() {
-            try {
-                const { data, error } = await _supabase
-                    .from('clients')
-                    .select('*')
-                    .order('name', { ascending: true });
-
-                if (error) throw error;
-
-                const tbody = document.getElementById('tabela-clientes-corpo');
-                tbody.innerHTML = '';
-
-                data.forEach(cliente => {
-                    const dataFormatada = new Date(cliente.created_at).toLocaleDateString('pt-BR');
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><strong>${cliente.name}</strong></td>
-                            <td>${cliente.phone}</td>
-                            <td>${dataFormatada}</td>
-                            <td>
-                                <button class="btn-whatsapp" style="background:var(--primary); padding: 5px 10px;">
-                                    <i class="fas fa-eye"></i> Perfil
-                                </button>
-                            </td>
-                        </tr>
-                    `;
+            const { data, error } = await _supabase.from('clients').select('*').order('name');
+            const tbody = document.getElementById('tabela-clientes-corpo');
+            tbody.innerHTML = '';
+            if(data) {
+                data.forEach(c => {
+                    tbody.innerHTML += `<tr>
+                        <td><strong>${c.name}</strong></td>
+                        <td>${c.phone}</td>
+                        <td>${new Date(c.created_at).toLocaleDateString()}</td>
+                        <td><button onclick="verHistorico('${c.id}', '${c.name}')" class="btn-add" style="padding:5px 10px;">Histórico</button></td>
+                    </tr>`;
                 });
-            } catch (err) { console.error('Erro ao carregar clientes:', err.message); }
+            }
         }
+	
+					async function verHistorico(clientId, clientName) {
+				// 1. Abre o modal e limpa a tabela
+				document.getElementById('modalHistorico').style.display = 'flex';
+				document.getElementById('hist_cliente_nome').innerText = `Histórico: ${clientName}`;
+				const tbody = document.getElementById('tabela-historico-corpo');
+				tbody.innerHTML = '<tr><td colspan="3">Carregando...</td></tr>';
 
+				// Dicionário de tradução para os status
+				const traducaoStatus = {
+					'pending': 'Pendente',
+					'sent': 'Enviado',
+					'ignored': 'Ignorado'
+				};
+
+				// 2. Busca os agendamentos desse cliente no Supabase
+				const { data, error } = await _supabase
+					.from('reminders')
+					.select('*')
+					.eq('client_id', clientId)
+					.order('event_date', { ascending: false });
+
+				if (error) {
+					tbody.innerHTML = '<tr><td colspan="3">Erro ao carregar dados.</td></tr>';
+					return;
+				}
+
+				// 3. Preenche a tabela
+				tbody.innerHTML = data.length ? '' : '<tr><td colspan="3">Nenhum registro encontrado.</td></tr>';
+				
+				data.forEach(item => {
+					// Traduz o status ou mantém o original caso não encontre no dicionário
+					const statusPT = traducaoStatus[item.status] || item.status;
+					
+					// Define a cor baseada no status para facilitar a leitura
+					const statusCor = item.status === 'sent' ? 'var(--success)' : 
+									  item.status === 'pending' ? 'var(--secondary)' : '#64748b';
+
+					tbody.innerHTML += `
+						<tr>
+							<td>${new Date(item.event_date + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
+							<td>${item.title}</td>
+							<td><span style="color: ${statusCor}; font-weight: bold;">${statusPT}</span></td>
+						</tr>`;
+				});
+			}
+        // --- DASHBOARD / LEMBRETES ---
         async function carregarDados() {
-            try {
-                const { count: countTotal } = await _supabase.from('reminders').select('*', { count: 'exact', head: true });
-                const { count: countPending } = await _supabase.from('reminders').select('*', { count: 'exact', head: true }).eq('status', 'pending');
-                const { count: countClients } = await _supabase.from('clients').select('*', { count: 'exact', head: true });
+    // Mantém seus contadores originais
+    const { count: cT } = await _supabase.from('reminders').select('*', { count: 'exact', head: true });
+    const { count: cP } = await _supabase.from('reminders').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+    const { count: cC } = await _supabase.from('clients').select('*', { count: 'exact', head: true });
+    
+    document.getElementById('count-total').innerText = cT || 0;
+    document.getElementById('count-pending').innerText = cP || 0;
+    document.getElementById('count-clients').innerText = cC || 0;
 
-                document.getElementById('count-total').innerText = countTotal || 0;
-                document.getElementById('count-pending').innerText = countPending || 0;
-                document.getElementById('count-clients').innerText = countClients || 0;
+    // Busca os dados incluindo e-mail dos clientes
+    const { data } = await _supabase.from('reminders').select('*, clients(name, phone, email)').eq('status', 'pending').order('event_date');
+    
+    lembretesCache = data || []; // Alimenta o cache
+    renderizarTabelaLembretes(lembretesCache); // Chama a função visual
+}
+				// --- CONFIGURAÇÕES ---
+				async function carregarConfiguracoes() {
+					const { data } = await _supabase.from('settings').select('*').maybeSingle();
+					if(data) {
+						document.getElementById('config_business_name').value = data.business_name || '';
+						document.getElementById('config_owner_name').value = data.owner_name || '';
+						document.getElementById('config_footer').value = data.footer_message || '';
+						document.getElementById('sidebar-business-name').innerText = data.business_name || 'SQUEDY';
+					}
+				}
 
-                const { data, error } = await _supabase
-                    .from('reminders')
-                    .select('id, title, event_date, status, message_template, clients(name, phone)')
-                    .eq('status', 'pending')
-                    .order('event_date', { ascending: true });
+				async function salvarConfiguracoes() {
+					const payload = {
+						id: 1,
+						business_name: document.getElementById('config_business_name').value,
+						owner_name: document.getElementById('config_owner_name').value,
+						footer_message: document.getElementById('config_footer').value
+					};
+					await _supabase.from('settings').upsert(payload);
+					alert("Ajustes salvos!");
+					carregarConfiguracoes();
+				}
+		async function exportarExcel() {
+			// Busca todos os clientes do banco
+			const { data, error } = await _supabase.from('clients').select('name, phone, created_at').order('name');
 
-                if (error) throw error;
+			if (error) {
+				alert("Erro ao buscar dados: " + error.message);
+				return;
+			}
 
-                const tbody = document.getElementById('tabela-corpo');
-                tbody.innerHTML = data.length === 0 ? '<tr><td colspan="5" style="text-align:center;">🎉 Tudo em dia!</td></tr>' : '';
+			if (!data || data.length === 0) {
+				alert("Não há clientes para exportar.");
+				return;
+			}
 
-                data.forEach(item => {
-                    const dataObj = new Date(item.event_date + 'T12:00:00');
-                    const dataFormatada = dataObj.toLocaleDateString('pt-BR');
-                    const linkWa = `https://wa.me/${item.clients?.phone}?text=${encodeURIComponent(item.message_template)}`;
+			// Cria o cabeçalho do CSV
+			let csvContent = "Nome;WhatsApp;Data de Cadastro\n";
 
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><strong>${item.clients?.name}</strong><br><small>${item.clients?.phone}</small></td>
-                            <td>${item.title}</td>
-                            <td>${dataFormatada}</td>
-                            <td><span class="badge-status status-hoje">${item.status}</span></td>
-                            <td>
-                                <a href="${linkWa}" target="_blank" class="btn-whatsapp" onclick="marcarComoEnviado('${item.id}')">
-                                    <i class="fab fa-whatsapp"></i> Enviar
-                                </a>
-                            </td>
-                        </tr>
-                    `;
-                });
-            } catch (err) { console.error('Erro:', err.message); }
-        }
+			// Adiciona as linhas
+			data.forEach(user => {
+				const dataFormatada = new Date(user.created_at).toLocaleDateString();
+				csvContent += `${user.name};${user.phone};${dataFormatada}\n`;
+			});
 
-        async function marcarComoEnviado(id) {
-            await _supabase.from('reminders').update({ status: 'sent' }).eq('id', id);
-            setTimeout(carregarDados, 2000); 
-        }
-
+			// Cria o arquivo para download (formato CSV compatível com Excel)
+			const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			
+			link.setAttribute("href", url);
+			link.setAttribute("download", "clientes_squedy.csv");
+			link.style.visibility = 'hidden';
+			
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		}
+        // --- SALVAR AGENDAMENTO ---
         async function salvarAgendamento() {
             const nome = document.getElementById('new_name').value;
             const fone = document.getElementById('new_phone').value.replace(/\D/g, '');
-            const titulo = document.getElementById('new_title').value;
             const dataRef = document.getElementById('new_date').value;
-            let msg = document.getElementById('new_msg').value;
-
-            if(!nome || !fone || !dataRef) return alert("Preencha os campos obrigatórios.");
-
-            try {
-                const { data: cliente, error: errC } = await _supabase.from('clients').upsert({ name: nome, phone: fone }, { onConflict: 'phone' }).select().single();
-                if (errC) throw errC;
-
-                const dataObj = new Date(dataRef + 'T12:00:00');
-                const dataFormatadaBrasil = dataObj.toLocaleDateString('pt-BR');
-                msg = msg.replace('{name}', nome).replace('{title}', titulo).replace('{date}', dataFormatadaBrasil);
-
-                const { error: errR } = await _supabase.from('reminders').insert({
-                    client_id: cliente.id,
-                    title: titulo,
-                    event_date: dataRef,
-                    message_template: msg,
-                    status: 'pending'
-                });
-                if (errR) throw errR;
-
-                fecharModal();
-                carregarDados();
-            } catch (err) { alert("Erro ao salvar: " + err.message); }
+            
+            const { data: cliente } = await _supabase.from('clients').upsert({ name: nome, phone: fone }, { onConflict: 'phone' }).select().single();
+            
+            await _supabase.from('reminders').insert({
+                client_id: cliente.id,
+                title: document.getElementById('new_title').value,
+                event_date: dataRef,
+                message_template: document.getElementById('new_msg').value,
+                status: 'pending'
+            });
+            
+            fecharModal();
+            carregarDados();
         }
 
+        // OUTRAS FUNÇÕES AUXILIARES (MODAL, TEMPLATES, ETC)
+		function abrirModal() { 
+			document.getElementById('modalAgendamento').style.display = 'flex'; 
+			carregarSelectTemplates(); 
+			carregarSugestoesClientes(); // Adicionado para carregar a lista de nomes
+			// Busca nomes e telefones para o autocompletar do modal
+		async function carregarSugestoesClientes() {
+			const { data, error } = await _supabase.from('clients').select('name, phone');
+			const datalist = document.getElementById('lista-clientes-sugeridos');
+			
+			if (error) {
+				console.error("Erro ao carregar sugestões:", error.message);
+				return;
+			}
+
+			clientesCadastrados = data || []; // Alimenta a variável global definida no início do script
+			datalist.innerHTML = '';
+			
+			clientesCadastrados.forEach(c => {
+				datalist.innerHTML += `<option value="${c.name}">`;
+			});
+		}
+
+		// Preenche o WhatsApp automaticamente se o nome já existir no banco
+		function autoPreencherTelefone(nomeDigitado) {
+			const cliente = clientesCadastrados.find(c => c.name === nomeDigitado);
+			if (cliente) {
+				document.getElementById('new_phone').value = cliente.phone;
+			}
+		}
+}        function fecharModal() { document.getElementById('modalAgendamento').style.display = 'none'; }
+        
+        async function carregarSelectTemplates() {
+            const { data } = await _supabase.from('message_templates').select('*');
+            const sel = document.getElementById('select_template');
+            sel.innerHTML = '<option value="">Selecione...</option>';
+            data?.forEach(t => sel.innerHTML += `<option value="${t.content}">${t.title}</option>`);
+        }
+
+        function aplicarTemplate(val) { if(val) document.getElementById('new_msg').value = val; }
+        async function ignorarLembrete(id) { if(confirm("Ignorar este lembrete?")) { await _supabase.from('reminders').update({ status: 'ignored' }).eq('id', id); carregarDados(); } }
+
+        async function marcarComoEnviado(id) {
+            await _supabase.from('reminders').update({ status: 'sent' }).eq('id', id);
+            setTimeout(carregarDados, 1500);
+        }
+			// --- GESTÃO DE MODELOS DE MENSAGENS (GRID) ---
+			async function carregarTemplates() {
+				const grid = document.getElementById('grid-templates');
+				grid.innerHTML = '<p style="padding: 20px;">Carregando modelos...</p>';
+				
+				const { data, error } = await _supabase.from('message_templates').select('*').order('title');
+
+				if (error) {
+					grid.innerHTML = '<p style="color: red;">Erro ao carregar modelos.</p>';
+					return;
+				}
+
+				grid.innerHTML = '';
+				if (data && data.length > 0) {
+					data.forEach(t => {
+						grid.innerHTML += `
+							<div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+								<h3 style="margin: 0 0 10px 0; font-size: 1.1rem; color: var(--dark-blue);">${t.title}</h3>
+								<p style="font-size: 0.85rem; color: #64748b; line-height: 1.5; margin-bottom: 15px;">
+									${t.content.substring(0, 100)}${t.content.length > 100 ? '...' :埋}
+								</p>
+								<button onclick="excluirTemplate('${t.id}')" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.8rem; font-weight: 600; padding: 0;">
+									<i class="fas fa-trash-alt"></i> Excluir Modelo
+								</button>
+							</div>`;
+					});
+				} else {
+					grid.innerHTML = '<p style="color: #64748b; padding: 20px;">Nenhum modelo cadastrado.</p>';
+				}
+			}
+
+				// --- FUNÇÕES PARA CRIAR E EXCLUIR ---
+				function abrirModalTemplate() {
+					const titulo = prompt("Título do Modelo (ex: Lembrete de Revisão):");
+					if (!titulo) return;
+					const conteudo = prompt("Conteúdo da Mensagem (Dica: Use [NOME] para personalizar depois):");
+					if (!conteudo) return;
+					
+					salvarNovoTemplate(titulo, conteudo);
+				}
+
+				async function salvarNovoTemplate(title, content) {
+					const { error } = await _supabase.from('message_templates').insert([{ title, content }]);
+					if (!error) {
+						alert("Modelo salvo com sucesso!");
+						carregarTemplates();
+					} else {
+						alert("Erro ao salvar: " + error.message);
+					}
+				}
+
+				async function excluirTemplate(id) {
+					if (confirm("Tem certeza que deseja excluir este modelo definitivamente?")) {
+						const { error } = await _supabase.from('message_templates').delete().eq('id', id);
+						if (!error) {
+							carregarTemplates();
+						} else {
+							alert("Erro ao excluir: " + error.message);
+						}
+					}
+}
+        // Início
         window.onload = carregarDados;
     </script>
 </body>
