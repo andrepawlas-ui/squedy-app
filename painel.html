@@ -10,6 +10,66 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
 
     <style>
+			/* Estilo para Ícones de Informação e Tooltips */
+		.info-tip {
+			color: var(--primary);
+			font-size: 0.85rem;
+			cursor: help;
+			margin-left: 6px;
+			transition: 0.3s;
+		}
+
+		.info-tip:hover { color: var(--dark-blue); }
+
+		[data-tip] { position: relative; }
+		[data-tip]:hover::after {
+			content: attr(data-tip);
+			position: absolute;
+			bottom: 125%;
+			left: 50%;
+			transform: translateX(-50%);
+			background: #333;
+			color: #fff;
+			padding: 8px 12px;
+			border-radius: 6px;
+			font-size: 0.75rem;
+			white-space: normal;
+			width: 200px;
+			z-index: 1000;
+			box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+			font-weight: normal;
+			line-height: 1.4;
+		}
+	
+			/* Tooltip de Informação */
+		.info-tip {
+			color: var(--primary);
+			font-size: 0.85rem;
+			cursor: help;
+			margin-left: 6px;
+			transition: 0.3s;
+		}
+
+		.info-tip:hover { color: var(--dark-blue); }
+
+		[data-tip] { position: relative; }
+		[data-tip]:hover::after {
+			content: attr(data-tip);
+			position: absolute;
+			bottom: 125%;
+			left: 50%;
+			transform: translateX(-50%);
+			background: #333;
+			color: #fff;
+			padding: 8px 12px;
+			border-radius: 6px;
+			font-size: 0.75rem;
+			white-space: normal;
+			width: 180px;
+			z-index: 1000;
+			box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+			font-weight: 400;
+		}
         :root {
             --sidebar-width: 260px;
             --primary: #2563eb;
@@ -81,7 +141,8 @@
 <body>
 
     <div class="sidebar">
-        <div class="sidebar-header" id="sidebar-business-name">SQUEDY</div>
+			<h2><i class="fas fa-calendar-check"></i> Squedy</h2>
+			
         <div class="nav-links">
             <a id="menu-lembretes" class="nav-item active" onclick="mudarAba('lembretes')"><i class="fas fa-home"></i> Dashboard</a>
             <a id="menu-clientes" class="nav-item" onclick="mudarAba('clientes')"><i class="fas fa-users"></i> Meus Clientes</a>
@@ -162,20 +223,22 @@
 
         <div id="modalAgendamento" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header"><h3>Novo Agendamento</h3></div>
-            <div class="form-group">
-                <label>Nome do Cliente</label>
-                <input type="text" id="new_name" list="lista-clientes-sugeridos" placeholder="Busque ou digite o nome..." oninput="autoPreencherTelefone(this.value)">
-                <datalist id="lista-clientes-sugeridos"></datalist>
-            </div>
-            <div class="form-group">
-                <label>WhatsApp</label>
-                <input type="text" id="new_phone" placeholder="Ex: 5511988887777">
-            </div>
-            <div class="form-group">
-                <label>Serviço / Motivo</label>
-                <input type="text" id="new_title" placeholder="Ex: Revisão de Carro">
-            </div>
+         <div class="form-group">
+				<label>Cliente <i class="fas fa-info-circle info-tip" data-tip="Dica: Se o cliente já existir, o sistema preencherá o WhatsApp automaticamente."></i></label>
+				<input type="text" id="new_name" list="lista-clientes-sugeridos" oninput="autoPreencherTelefone(this.value)" placeholder="Nome do cliente">
+				<datalist id="lista-clientes-sugeridos"></datalist>
+			</div>
+
+			<div class="form-group">
+				<label>WhatsApp <i class="fas fa-info-circle info-tip" data-tip="Insira o número com DDD sem o digito 9 na frente. Exemplo: 11999998888."></i></label>
+				<input type="text" id="new_phone" placeholder="DDD + Número">
+			</div>
+
+			<div class="form-group">
+				<label>Serviço <i class="fas fa-info-circle info-tip" data-tip="Digite motivo personalizado."></i></label>
+				<input type="text" id="new_title" list="lista-servicos" placeholder="Ex: Revisão, Troca de Óleo">
+				<datalist id="lista-servicos"></datalist>
+			</div>
             <div class="form-group">
                 <label>Data de Vencimento</label>
                 <input type="date" id="new_date">
@@ -505,53 +568,7 @@ function inicializarCalendario() {
             carregarDados();
         }
 
-        // OUTRAS FUNÇÕES AUXILIARES (MODAL, TEMPLATES, ETC)
-		function abrirModal() { 
-			document.getElementById('modalAgendamento').style.display = 'flex'; 
-			carregarSelectTemplates(); 
-			carregarSugestoesClientes(); // Adicionado para carregar a lista de nomes
-			// Busca nomes e telefones para o autocompletar do modal
-		async function carregarSugestoesClientes() {
-			const { data, error } = await _supabase.from('clients').select('name, phone');
-			const datalist = document.getElementById('lista-clientes-sugeridos');
-			
-			if (error) {
-				console.error("Erro ao carregar sugestões:", error.message);
-				return;
-			}
-
-			clientesCadastrados = data || []; // Alimenta a variável global definida no início do script
-			datalist.innerHTML = '';
-			
-			clientesCadastrados.forEach(c => {
-				datalist.innerHTML += `<option value="${c.name}">`;
-			});
-		}
-
-		// Preenche o WhatsApp automaticamente se o nome já existir no banco
-		function autoPreencherTelefone(nomeDigitado) {
-			const cliente = clientesCadastrados.find(c => c.name === nomeDigitado);
-			if (cliente) {
-				document.getElementById('new_phone').value = cliente.phone;
-			}
-		}
-}        function fecharModal() { document.getElementById('modalAgendamento').style.display = 'none'; }
-        
-        async function carregarSelectTemplates() {
-            const { data } = await _supabase.from('message_templates').select('*');
-            const sel = document.getElementById('select_template');
-            sel.innerHTML = '<option value="">Selecione...</option>';
-            data?.forEach(t => sel.innerHTML += `<option value="${t.content}">${t.title}</option>`);
-        }
-
-        function aplicarTemplate(val) { if(val) document.getElementById('new_msg').value = val; }
-        async function ignorarLembrete(id) { if(confirm("Ignorar este lembrete?")) { await _supabase.from('reminders').update({ status: 'ignored' }).eq('id', id); carregarDados(); } }
-
-        async function marcarComoEnviado(id) {
-            await _supabase.from('reminders').update({ status: 'sent' }).eq('id', id);
-            setTimeout(carregarDados, 1500);
-        }
-			// --- GESTÃO DE MODELOS DE MENSAGENS (GRID) ---
+// --- GESTÃO DE MODELOS DE MENSAGENS (GRID) ---
 			async function carregarTemplates() {
 				const grid = document.getElementById('grid-templates');
 				grid.innerHTML = '<p style="padding: 20px;">Carregando modelos...</p>';
@@ -612,6 +629,91 @@ function inicializarCalendario() {
 						}
 					}
 }
+        // --- OUTRAS FUNÇÕES AUXILIARES (MODAL, TEMPLATES, AUTOFILL) ---
+
+        async function abrirModal() { 
+            try {
+                document.getElementById('modalAgendamento').style.display = 'flex'; 
+                await carregarSelectTemplates(); 
+                await carregarSugestoesClientes(); // Carrega lista para Auto Fill
+                await carregarServicos();          // Carrega lista de Serviços
+            } catch (e) {
+                console.error("Erro ao abrir modal:", e);
+            }
+        }
+
+        function fecharModal() { 
+            document.getElementById('modalAgendamento').style.display = 'none'; 
+        }
+        
+        async function carregarSelectTemplates() {
+            const { data } = await _supabase.from('message_templates').select('*');
+            const sel = document.getElementById('select_template');
+            if (sel) {
+                sel.innerHTML = '<option value="">Selecione...</option>';
+                data?.forEach(t => sel.innerHTML += `<option value="${t.content}">${t.title}</option>`);
+            }
+        }
+
+        // 1. Função para buscar serviços e popular o datalist
+        async function carregarServicos() {
+            const { data } = await _supabase.from('services').select('name').order('name');
+            const datalist = document.getElementById('lista-servicos');
+            if (datalist) {
+                datalist.innerHTML = '';
+                data?.forEach(s => datalist.innerHTML += `<option value="${s.name}">`);
+            }
+        }
+
+        // 2. Função para buscar clientes para o Auto Fill
+        async function carregarSugestoesClientes() {
+            const { data } = await _supabase.from('clients').select('name, phone');
+            const datalist = document.getElementById('lista-clientes-sugeridos');
+            clientesCadastrados = data || []; 
+            if (datalist) {
+                datalist.innerHTML = '';
+                clientesCadastrados.forEach(c => datalist.innerHTML += `<option value="${c.name}">`);
+            }
+        }
+
+        // 3. Lógica do Auto Fill
+        function autoPreencherTelefone(nomeDigitado) {
+            if (!nomeDigitado) return;
+            const cliente = clientesCadastrados.find(c => c.name === nomeDigitado);
+            if (cliente) {
+                const inputFone = document.getElementById('new_phone');
+                if (inputFone) inputFone.value = cliente.phone;
+            }
+        }
+
+        function aplicarTemplate(val) { 
+            if(val) document.getElementById('new_msg').value = val; 
+        }
+
+// Alterado para pedir confirmação antes de marcar como enviado
+async function marcarComoEnviado(id) {
+    const confirmacao = confirm("Deseja enviar este lembrete?");
+    if (!confirmacao) return;
+
+    const { error } = await _supabase.from('reminders').update({ status: 'sent' }).eq('id', id);
+    if (!error) {
+        carregarDados();
+    } else {
+        alert("Erro ao atualizar: " + error.message);
+    }
+}
+
+// Alterado para pedir confirmação antes de ignorar/remover da lista
+async function ignorarLembrete(id) {
+    const confirmacao = confirm("Tem certeza que deseja IGNORAR este lembrete? Ele deixará de aparecer no seu dashboard.");
+    if (!confirmacao) return;
+
+    const { error } = await _supabase.from('reminders').update({ status: 'ignored' }).eq('id', id);
+    if (!error) {
+        carregarDados();
+    }
+}
+
         // Início
         window.onload = carregarDados;
     </script>
