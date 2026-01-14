@@ -139,7 +139,32 @@
     </style>
 </head>
 <body>
+<div id="auth-container" style="
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+">
+  <div style="background:white;padding:40px;border-radius:16px;width:100%;max-width:400px;box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+    <h2 id="auth-title" style="text-align:center; color: #0f172a;">Squedy</h2>
+    <p id="auth-subtitle" style="text-align:center; color: #64748b; margin-bottom: 20px;">Acesse sua conta para continuar</p>
+    
+    <input id="auth-email" type="email" placeholder="E-mail" style="width:100%;padding:10px;margin-bottom:10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
+    <input id="auth-password" type="password" placeholder="Senha" style="width:100%;padding:10px;margin-bottom:15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
+    
+    <button id="auth-button" onclick="handleAuth()" style="width:100%;padding:12px;background:#2563eb;color:white;border:none;border-radius:8px; cursor: pointer; font-weight: bold;">
+      Entrar
+    </button>
 
+    <p style="text-align:center; margin-top: 20px; font-size: 0.9rem; color: #64748b;">
+      <span id="auth-switch-text">Não tem conta?</span> 
+      <a href="javascript:void(0)" onclick="toggleAuthMode()" id="auth-switch-link" style="color: #2563eb; text-decoration: none; font-weight: bold;">Cadastre-se</a>
+    </p>
+  </div>
+</div>
     <div class="sidebar">
 			<h2><i class="fas fa-calendar-check"></i> Squedy</h2>
 			
@@ -151,7 +176,7 @@
             <a id="menu-configuracoes" class="nav-item" onclick="mudarAba('configuracoes')"><i class="fas fa-cog"></i> Configurações</a>
         </div>
         <div style="padding: 20px; border-top: 1px solid #1e293b;">
-            <a href="index.html" class="nav-item"><i class="fas fa-sign-out-alt"></i> Sair</a>
+<a href="javascript:void(0)" onclick="handleLogout()">Sair</a>
         </div>
     </div>
 
@@ -549,24 +574,61 @@ function inicializarCalendario() {
 			document.body.removeChild(link);
 		}
         // --- SALVAR AGENDAMENTO ---
-        async function salvarAgendamento() {
-            const nome = document.getElementById('new_name').value;
-            const fone = document.getElementById('new_phone').value.replace(/\D/g, '');
-            const dataRef = document.getElementById('new_date').value;
-            
-            const { data: cliente } = await _supabase.from('clients').upsert({ name: nome, phone: fone }, { onConflict: 'phone' }).select().single();
-            
-            await _supabase.from('reminders').insert({
-                client_id: cliente.id,
-                title: document.getElementById('new_title').value,
-                event_date: dataRef,
-                message_template: document.getElementById('new_msg').value,
-                status: 'pending'
-            });
-            
-            fecharModal();
-            carregarDados();
-        }
+// --- SALVAR AGENDAMENTO ATUALIZADO ---
+async function salvarAgendamento() {
+    // 1. Pegar o usuário logado no momento
+    const { data: { user } } = await _supabase.auth.getUser();
+    
+    if (!user) {
+        alert("Sessão expirada. Por favor, faça login novamente.");
+        return;
+    }
+
+    const nome = document.getElementById('new_name').value;
+    const fone = document.getElementById('new_phone').value.replace(/\D/g, '');
+    const dataRef = document.getElementById('new_date').value;
+    
+    // 2. Salvar/Atualizar Cliente (passando o user_id e tratando o conflito duplo)
+    const { data: cliente, error: errorCliente } = await _supabase
+        .from('clients')
+        .upsert({ 
+            name: nome, 
+            phone: fone, 
+            user_id: user.id // Vincula o cliente ao seu usuário
+        }, { 
+            onConflict: 'phone,user_id' // A chave única agora são os dois campos
+        })
+        .select()
+        .single();
+
+    if (errorCliente) {
+        console.error("Erro ao salvar cliente:", errorCliente);
+        alert("Erro ao identificar cliente. Verifique os dados.");
+        return;
+    }
+    
+    // 3. Inserir o Lembrete vinculado ao cliente e ao usuário
+    const { error: errorLembrete } = await _supabase
+        .from('reminders')
+        .insert({
+            client_id: cliente.id,
+            user_id: user.id, // Garante que o lembrete é seu
+            title: document.getElementById('new_title').value,
+            event_date: dataRef,
+            message_template: document.getElementById('new_msg').value,
+            status: 'pending'
+        });
+
+    if (errorLembrete) {
+        console.error("Erro ao salvar lembrete:", errorLembrete);
+        alert("Erro ao agendar lembrete.");
+    } else {
+        fecharModal();
+        carregarDados();
+        // Opcional: recarregar lista de clientes para o auto-complete atualizar
+        if (typeof carregarListaClientes === "function") carregarListaClientes();
+    }
+}
 
 // --- GESTÃO DE MODELOS DE MENSAGENS (GRID) ---
 			async function carregarTemplates() {
@@ -716,6 +778,75 @@ async function ignorarLembrete(id) {
 
         // Início
         window.onload = carregarDados;
+		/* === AUTH GUARD SUPABASE === */
+async function checkAuthGuard() {
+  const { data: { user } } = await _supabase.auth.getUser();
+  if (user) {
+    document.getElementById('auth-container').style.display = 'none';
+  } else {
+    document.getElementById('auth-container').style.display = 'flex';
+  }
+}
+
+/* === SISTEMA DE AUTENTICAÇÃO (LOGIN E CADASTRO) === */
+let isSignUpMode = false; // Controla se estamos na tela de login ou cadastro
+
+// Função que alterna os textos da tela
+function toggleAuthMode() {
+    isSignUpMode = !isSignUpMode;
+    const btn = document.getElementById('auth-button'); // Certifique-se que o id do seu botão é este
+    const link = document.getElementById('auth-switch-link');
+    const title = document.querySelector('#auth-container h2');
+
+    if (isSignUpMode) {
+        title.innerText = "Criar Conta";
+        btn.innerText = "Cadastrar";
+        link.innerText = "Já tem conta? Entrar";
+    } else {
+        title.innerText = "Squedy";
+        btn.innerText = "Entrar";
+        link.innerText = "Não tem conta? Cadastre-se";
+    }
+}
+
+async function handleAuth() {
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+
+    if (!email || !password) {
+        alert("Preencha e-mail e senha.");
+        return;
+    }
+
+    if (isSignUpMode) {
+        // Tenta CADASTRAR novo usuário
+        const { error } = await _supabase.auth.signUp({ email, password });
+        if (error) {
+            alert("Erro no cadastro: " + error.message);
+        } else {
+            alert("Cadastro realizado! Verifique seu e-mail para confirmar.");
+            toggleAuthMode(); // Volta para tela de login após cadastrar
+        }
+    } else {
+        // Tenta fazer LOGIN (sua lógica original)
+        const { error } = await _supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+            alert("Erro no login: " + error.message);
+        } else {
+            checkAuthGuard(); // Esconde o painel de login
+            carregarDados();  // Carrega os dados do banco
+        }
+    }
+}
+/* === LOGOUT (substitui o link antigo) === */
+async function handleLogout() {
+  if (!confirm("Deseja sair?")) return;
+  await _supabase.auth.signOut();
+  location.reload();
+}
+
+/* Executa após tudo carregar */
+window.addEventListener('load', checkAuthGuard);
     </script>
 </body>
 </html>
