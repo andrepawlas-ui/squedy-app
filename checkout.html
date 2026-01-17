@@ -112,136 +112,66 @@
     </div>
 
     <script>
-        // CONFIGURAÇÃO SUPABASE
-        const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_EJIgtPIhhfnIyaALnIw0JQ_r6Kc6cbp'; 
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+       // CONFIGURAÇÃO SUPABASE
+const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_EJIgtPIhhfnIyaALnIw0JQ_r6Kc6cbp'; 
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function selecionarPlano(idDoPlano) {
-            const { data: { session } } = await _supabase.auth.getSession();
+async function selecionarPlano(idDoPlano) {
+    const { data: { session } } = await _supabase.auth.getSession();
 
-            if (!session) {
-                alert("Sessão expirada. Por favor, faça login novamente.");
-                window.location.href = 'painel.html';
-                return;
-            }
+    if (!session) {
+        alert("Sessão expirada. Por favor, faça login novamente.");
+        window.location.href = 'index.html'; // Corrigido para ir ao login se não houver sessão
+        return;
+    }
 
-            try {
-                // URL da sua Edge Function no Supabase (precisa ser criada no painel do Supabase)
-                const functionUrl = `${SUPABASE_URL}/functions/v1/criar-checkout`;
+    try {
+        // Chamada para a sua Edge Function hospedada no Supabase
+	const functionUrl = '${SUPABASE_URL}/functions/v1/PAGARME_API_KEY';
 
-                const response = await fetch(functionUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${session.access_token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ plan_type: idDoPlano })
-                });
+        const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${session.access_token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ plan_type: idDoPlano })
+        });
 
-                const data = await response.json();
+        const data = await response.json();
 
-                if (data.checkout_url) {
-                    window.location.href = data.checkout_url;
-                } else {
-                    console.error("Resposta da função:", data);
-                    alert("Erro ao gerar link de pagamento. Tente novamente.");
-                }
-            } catch (error) {
-                console.error("Erro no checkout:", error);
-                alert("Falha na conexão. Tente novamente em instantes.");
-            }
+        if (data.checkout_url) {
+            window.location.href = data.checkout_url;
+        } else {
+            console.error("Resposta da função:", data);
+            alert("Erro ao gerar link de pagamento. Tente novamente.");
         }
-
-        // LÓGICA DE MENSAGENS DE STATUS (TRIAL EXPIRADO, ETC)
-        const urlParams = new URLSearchParams(window.location.search);
-        const status = urlParams.get('status');
-
-        if (status) {
-            const mensagemBox = document.createElement('div');
-            mensagemBox.style = "grid-column: 1 / -1; background:#fff3cd; color:#856404; padding:15px; border-radius:8px; margin-bottom:10px; text-align:center; border:1px solid #ffeeba; font-weight:bold;";
-            
-            if (status === 'trial_vencido') {
-                mensagemBox.innerText = "👋 Seu período de 3 dias de teste terminou. Escolha um plano abaixo para não perder seus dados!";
-            } else if (status === 'expirado') {
-                mensagemBox.innerText = "Sua assinatura mensal expirou. Renove agora para reativar seu acesso ao Squedy.";
-            } else if (status === 'erro') {
-                mensagemBox.innerText = "Houve um erro técnico. Por favor, tente selecionar o plano novamente.";
-            }
-            
-            const container = document.querySelector('.checkout-container');
-            container.prepend(mensagemBox);
-        }
-		import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    } catch (error) {
+        console.error("Erro no checkout:", error);
+        alert("Falha na conexão. Tente novamente em instantes.");
+    }
 }
 
-serve(async (req) => {
-  // Responde ao pre-flight do navegador (CORS)
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+// LÓGICA DE MENSAGENS DE STATUS (TRIAL EXPIRADO, ETC)
+const urlParams = new URLSearchParams(window.location.search);
+const status = urlParams.get('status');
 
-  try {
-    const PAGARME_API_KEY = Deno.env.get('PAGARME_API_KEY')
+if (status) {
+    const mensagemBox = document.createElement('div');
+    mensagemBox.style = "grid-column: 1 / -1; background:#fff3cd; color:#856404; padding:15px; border-radius:8px; margin-bottom:10px; text-align:center; border:1px solid #ffeeba; font-weight:bold;";
     
-    // Inicializa Supabase para validar o usuário
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
-    )
-
-    const { data: { user } } = await supabaseClient.auth.getUser()
-    if (!user) throw new Error('Não autorizado')
-
-    // Pega o tipo do plano vindo do seu checkout.html
-    const { plan_type } = await req.json()
-
-    // Configuração de Preços (Backend blindado)
-    const amount = plan_type === 'anual' ? 97000 : 9700 // Valores em centavos
-    const planName = plan_type === 'anual' ? 'Squedy Anual' : 'Squedy Mensal'
-
-    // Chama o Pagar.me para criar o link de pagamento
-    const response = await fetch('https://api.pagar.me/core/v5/checkouts', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${btoa(PAGARME_API_KEY + ':')}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        customer_editable: false,
-        payment_methods: ['credit_card', 'pix'],
-        expires_in: 60, // Link vale por 60 minutos
-        items: [{
-          amount: amount,
-          description: planName,
-          quantity: 1,
-          code: plan_type
-        }],
-        // Onde o cliente cai após pagar
-        success_url: "https://seu-dominio.com/painel.html?status=sucesso"
-      })
-    })
-
-    const data = await response.json()
-
-    return new Response(
-      JSON.stringify({ checkout_url: data.checkout_url }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    )
-
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-    )
-  }
-})
+    if (status === 'trial_vencido') {
+        mensagemBox.innerText = "👋 Seu período de 3 dias de teste terminou. Escolha um plano abaixo para não perder seus dados!";
+    } else if (status === 'expirado') {
+        mensagemBox.innerText = "Sua assinatura mensal expirou. Renove agora para reativar seu acesso ao Squedy.";
+    } else if (status === 'erro') {
+        mensagemBox.innerText = "Houve um erro técnico. Por favor, tente selecionar o plano novamente.";
+    }
+    
+    const container = document.querySelector('.checkout-container');
+    if (container) container.prepend(mensagemBox);
+}
     </script>
 </body>
 </html>

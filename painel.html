@@ -314,7 +314,36 @@
 
         let calendar;
         let clientesCadastrados = [];
+        // FUNÇÃO checar assinatura
 
+async function checarAssinatura() {
+    const { data: { session } } = await _supabase.auth.getSession();
+    
+    if (!session) {
+        window.location.href = 'index.html'; // Se não houver login, volta pro início
+        return;
+    }
+
+    // Busca a data de expiração no seu banco
+    const { data: sub, error } = await _supabase
+        .from('subscriptions')
+        .select('expires_at')
+        .eq('user_id', session.user.id)
+        .single();
+
+    if (sub) {
+        const agora = new Date();
+        const expiracao = new Date(sub.expires_at);
+
+        // Se a data atual for maior que a expiração, redireciona para o checkout
+        if (agora > expiracao) {
+            window.location.href = 'checkout.html?status=trial_vencido';
+        }
+    }
+}
+
+// Executa a checagem assim que a página carrega
+checarAssinatura();
         // FUNÇÃO PARA MUDAR ABAS
         function mudarAba(idAba) {
             document.querySelectorAll('.aba-conteudo').forEach(aba => aba.style.display = 'none');
