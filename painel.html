@@ -845,8 +845,55 @@ async function handleLogout() {
   location.reload();
 }
 
-/* Executa após tudo carregar */
-window.addEventListener('load', checkAuthGuard);
+/**
+ * Gatekeeper de Acesso do Squedy
+ * Verifica se o usuário logado possui uma assinatura válida e dentro do prazo.
+ */
+async function checkSubscription() {
+    const { data: sub, error } = await _supabase
+        .from('subscriptions')
+        .select('status, current_period_end')
+        .maybeSingle();
+
+    // Bloqueio de segurança: falha na comunicação com o banco
+    if (error) {
+        console.error('Erro crítico de faturamento:', error);
+        window.location.href = 'checkout.html?status=erro';
+        return;
+    }
+
+    // Fluxo de Novo Usuário: Redireciona para oferta inicial
+    if (!sub) {
+        window.location.href = 'checkout.html';
+        return;
+    }
+
+    const agora = new Date();
+    const expira = new Date(sub.current_period_end);
+
+    // Regras de Negócio: trialing e past_due mantêm acesso para melhor experiência
+    const STATUS_COM_ACESSO = ['active', 'trialing', 'past_due'];
+    const statusPermiteAcesso = STATUS_COM_ACESSO.includes(sub.status);
+    const dentroDoPrazo = expira > agora;
+
+    if (!statusPermiteAcesso || !dentroDoPrazo) {
+        console.warn('Acesso negado por faturamento:', { status: sub.status, validade: expira });
+        window.location.href = 'checkout.html?status=expirado';
+    }
+}
+
+// GATILHO DE INICIALIZAÇÃO ÚNICO
+window.addEventListener('load', async () => {
+    // 1. Verifica se está logado
+    await checkAuthGuard(); 
+    
+    // 2. Se logado, verifica a assinatura
+    const { data: { user } } = await _supabase.auth.getUser();
+    if (user) {
+        await checkSubscription();
+        await carregarDados(); // Carrega os dados só se passar na assinatura
+    }
+});
     </script>
 </body>
 </html>
