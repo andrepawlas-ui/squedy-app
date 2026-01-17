@@ -128,8 +128,7 @@ async function selecionarPlano(idDoPlano) {
 
     try {
         // Chamada para a sua Edge Function hospedada no Supabase
-const functionUrl = `${SUPABASE_URL}/functions/v1/PAGARME_API_KEY`; // Correto: use crases
-        const response = await fetch(functionUrl, {
+const functionUrl = 'https://zfyyiarsvjiisdvnhvtk.supabase.co/functions/v1/PAGARME_API_KEY';        const response = await fetch(functionUrl, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${session.access_token}`,
