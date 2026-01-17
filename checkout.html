@@ -79,7 +79,7 @@
     <script>
         // 1. CONFIGURAÇÃO SUPABASE
         const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_EJIgtPIhhfnIyaALnIw0JQ_r6Kc6cbp'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmeXlpYXJzdmppaXNkdm5odnRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwODEwMzYsImV4cCI6MjA4MzY1NzAzNn0.mlAW9b0dsewLUqvtyY1tEOTY643_sNGIgiVEgCCgADs'; 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // 2. FUNÇÃO DE CHECKOUT (Corrigida e única)
@@ -95,14 +95,17 @@
                 // URL da sua Edge Function
 				const functionUrl = `${SUPABASE_URL}/functions/v1/PAGARME_API_KEY`;
 
-                const response = await fetch(functionUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        plan_id: idDoPlano, 
-                        user_id: userId 
-                    })
-                });
+			const response = await fetch(functionUrl, {
+			  method: 'POST',
+			  headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${SUPABASE_KEY}`
+			  },
+			  body: JSON.stringify({ 
+				plan_id: idDoPlano, 
+				user_id: userId 
+			  })
+			});
 
                 // Se a função retornar erro (ex: 400), o .json() ainda tenta ler a resposta
                 const data = await response.json();
