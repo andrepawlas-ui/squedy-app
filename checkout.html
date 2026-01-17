@@ -14,11 +14,9 @@
             --gray: #64748b;
             --bg: #f1f5f9;
         }
-
         body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
         .checkout-container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
         .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        
         h2 { margin-top: 0; font-size: 1.5rem; color: var(--primary); }
         .plan-option {
             border: 2px solid #e2e8f0;
@@ -32,7 +30,6 @@
             align-items: center;
         }
         .plan-option:hover { border-color: var(--primary); background: #f8fafc; }
-        
         .btn-checkout {
             width: 100%;
             background: var(--success);
@@ -46,12 +43,9 @@
             transition: 0.3s;
             margin-top: 10px;
         }
-        .btn-checkout:hover { background: #16a34a; transform: translateY(-2px); }
-
         .price-summary { background: #f8fafc; padding: 20px; border-radius: 12px; height: fit-content; }
         .item-price { display: flex; justify-content: space-between; margin-bottom: 10px; color: var(--gray); }
         .total { font-size: 1.3rem; font-weight: bold; color: #1e293b; border-top: 1px solid #e2e8f0; padding-top: 10px; }
-        
         .badge-anual { background: var(--secondary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; }
     </style>
 </head>
@@ -60,116 +54,77 @@
     <div class="checkout-container">
         <div class="card">
             <h2><i class="fas fa-credit-card" style="margin-right: 10px;"></i> Selecione seu Plano</h2>
-            <p style="color: var(--gray);">Você será redirecionado para o ambiente seguro do Pagar.me para concluir o pagamento.</p>
+            <p style="color: var(--gray);">Você será redirecionado para o ambiente seguro do Pagar.me.</p>
 
             <div class="plan-option" onclick="selecionarPlano('mensal')">
-                <div>
-                    <strong>Plano Mensal</strong><br>
-                    <small>Acesso total ao sistema</small>
-                </div>
-                <div>
-                    <span style="font-weight: bold; color: var(--primary);">R$ 97,00</span>
-                </div>
+                <div><strong>Plano Mensal</strong><br><small>Acesso total ao sistema</small></div>
+                <div><span style="font-weight: bold; color: var(--primary);">R$ 97,00</span></div>
             </div>
 
             <div class="plan-option" onclick="selecionarPlano('anual')">
-                <div>
-                    <strong>Plano Anual</strong> <span class="badge-anual">ECONOMIZE 20%</span><br>
-                    <small>Ideal para empresas estabelecidas</small>
-                </div>
-                <div>
-                    <span style="font-weight: bold; color: var(--primary);">R$ 970,00</span>
-                </div>
+                <div><strong>Plano Anual</strong> <span class="badge-anual">ECONOMIZE 20%</span><br><small>Ideal para empresas</small></div>
+                <div><span style="font-weight: bold; color: var(--primary);">R$ 970,00</span></div>
             </div>
 
-            <button onclick="alert('Por favor, selecione um dos planos acima para prosseguir.')" class="btn-checkout">
-                PAGAR COM SEGURANÇA
-            </button>
+            <button onclick="alert('Por favor, selecione um dos planos acima.')" class="btn-checkout">PAGAR COM SEGURANÇA</button>
         </div>
 
         <div class="price-summary">
             <h3>Resumo do Pedido</h3>
-            <div class="item-price">
-                <span>Assinatura Squedy</span>
-                <span>R$ 97,00</span>
-            </div>
-            <div class="item-price">
-                <span>Taxa de Ativação</span>
-                <span style="color:var(--success)">GRÁTIS</span>
-            </div>
-            <div class="total">
-                <span>TOTAL HOJE</span>
-                <span>R$ 97,00</span>
-            </div>
-
-            <div style="margin-top: 20px; background: #fff; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary);">
-                <small style="color: var(--gray);">
-                    <i class="fas fa-lock"></i> Pagamento processado por <strong>Pagar.me (Stone Co.)</strong>. 
-                    Seu cartão e seus dados estão 100% seguros.
-                </small>
-            </div>
+            <div class="item-price"><span>Assinatura Squedy</span><span id="resumo-preco">R$ 97,00</span></div>
+            <div class="total"><span>TOTAL HOJE</span><span id="total-preco">R$ 97,00</span></div>
         </div>
     </div>
 
     <script>
-       // CONFIGURAÇÃO SUPABASE
-const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_EJIgtPIhhfnIyaALnIw0JQ_r6Kc6cbp'; 
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // 1. CONFIGURAÇÃO SUPABASE
+        const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_EJIgtPIhhfnIyaALnIw0JQ_r6Kc6cbp'; 
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-async function selecionarPlano(idDoPlano) {
-    const { data: { session } } = await _supabase.auth.getSession();
+        // 2. FUNÇÃO DE CHECKOUT (Corrigida e única)
+        async function selecionarPlano(idDoPlano) {
+            // Atualiza visual do resumo (opcional)
+            document.getElementById('resumo-preco').innerText = idDoPlano === 'anual' ? 'R$ 970,00' : 'R$ 97,00';
+            document.getElementById('total-preco').innerText = idDoPlano === 'anual' ? 'R$ 970,00' : 'R$ 97,00';
 
-    if (!session) {
-        alert("Sessão expirada. Por favor, faça login novamente.");
-        window.location.href = 'index.html'; // Corrigido para ir ao login se não houver sessão
-        return;
-    }
+            const { data: { session } } = await _supabase.auth.getSession();
+            const userId = session?.user?.id || 'usuario_nao_logado';
 
-    try {
-        // Chamada para a sua Edge Function hospedada no Supabase
-const functionUrl = 'https://zfyyiarsvjiisdvnhvtk.supabase.co/functions/v1/PAGARME_API_KEY';        const response = await fetch(functionUrl, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${session.access_token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ plan_type: idDoPlano })
-        });
+            try {
+                // URL da sua Edge Function
+                const functionUrl = `${SUPABASE_URL}/functions/v1/PAGARME_API_KEY`;
+                
+                const response = await fetch(functionUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        plan_id: idDoPlano, 
+                        user_id: userId 
+                    })
+                });
 
-        const data = await response.json();
+                // Se a função retornar erro (ex: 400), o .json() ainda tenta ler a resposta
+                const data = await response.json();
 
-        if (data.checkout_url) {
-            window.location.href = data.checkout_url;
-        } else {
-            console.error("Resposta da função:", data);
-            alert("Erro ao gerar link de pagamento. Tente novamente.");
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    alert("Erro: " + (data.error || "Link de pagamento não gerado."));
+                }
+            } catch (error) {
+                console.error("Erro na conexão:", error);
+                alert("Falha ao comunicar com o servidor de pagamento.");
+            }
         }
-    } catch (error) {
-        console.error("Erro no checkout:", error);
-        alert("Falha na conexão. Tente novamente em instantes.");
-    }
-}
 
-// LÓGICA DE MENSAGENS DE STATUS (TRIAL EXPIRADO, ETC)
-const urlParams = new URLSearchParams(window.location.search);
-const status = urlParams.get('status');
-
-if (status) {
-    const mensagemBox = document.createElement('div');
-    mensagemBox.style = "grid-column: 1 / -1; background:#fff3cd; color:#856404; padding:15px; border-radius:8px; margin-bottom:10px; text-align:center; border:1px solid #ffeeba; font-weight:bold;";
-    
-    if (status === 'trial_vencido') {
-        mensagemBox.innerText = "👋 Seu período de 3 dias de teste terminou. Escolha um plano abaixo para não perder seus dados!";
-    } else if (status === 'expirado') {
-        mensagemBox.innerText = "Sua assinatura mensal expirou. Renove agora para reativar seu acesso ao Squedy.";
-    } else if (status === 'erro') {
-        mensagemBox.innerText = "Houve um erro técnico. Por favor, tente selecionar o plano novamente.";
-    }
-    
-    const container = document.querySelector('.checkout-container');
-    if (container) container.prepend(mensagemBox);
-}
+        // 3. LÓGICA DE STATUS DA URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get('status');
+        if (status) {
+            const msg = status === 'trial_vencido' ? "👋 Teste terminado. Escolha um plano!" : "Erro técnico. Tente novamente.";
+            alert(msg);
+        }
     </script>
 </body>
 </html>
