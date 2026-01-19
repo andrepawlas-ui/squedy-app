@@ -1,206 +1,165 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout Seguro - Squedy App</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --secondary: #f59e0b;
-            --success: #22c55e;
-            --gray: #64748b;
-            --bg: #f1f5f9;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout Seguro - Squedy App</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+    --primary: #2563eb;
+    --secondary: #f59e0b;
+    --success: #22c55e;
+    --gray: #64748b;
+    --bg: #f1f5f9;
+}
 
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
-        .checkout-container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        
-        h2 { margin-top: 0; font-size: 1.5rem; color: var(--primary); }
-        .plan-option {
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            transition: 0.3s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .plan-option:hover { border-color: var(--primary); background: #f8fafc; }
-        
-        .btn-checkout {
-            width: 100%;
-            background: var(--success);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
-        }
-        .btn-checkout:hover { background: #16a34a; transform: translateY(-2px); }
-
-        .price-summary { background: #f8fafc; padding: 20px; border-radius: 12px; height: fit-content; }
-        .item-price { display: flex; justify-content: space-between; margin-bottom: 10px; color: var(--gray); }
-        .total { font-size: 1.3rem; font-weight: bold; color: #1e293b; border-top: 1px solid #e2e8f0; padding-top: 10px; }
-        
-        .badge-anual { background: var(--secondary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; }
-    </style>
+body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
+.checkout-container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
+.card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+.plan-option { border: 2px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 15px; cursor: pointer; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; }
+.plan-option:hover { border-color: var(--primary); background: #f8fafc; }
+.plan-option.selected { border-color: var(--primary); background: #e0f2fe; }
+.btn-checkout { width: 100%; background: var(--success); color: white; border: none; padding: 15px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+.btn-checkout:hover { background: #16a34a; transform: translateY(-2px); }
+.price-summary { background: #f8fafc; padding: 20px; border-radius: 12px; height: fit-content; }
+.item-price { display: flex; justify-content: space-between; margin-bottom: 10px; color: var(--gray); }
+.total { font-size: 1.3rem; font-weight: bold; color: #1e293b; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+.badge-anual { background: var(--secondary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; }
+</style>
 </head>
 <body>
 
-    <div class="checkout-container">
-        <div class="card">
-            <h2><i class="fas fa-credit-card" style="margin-right: 10px;"></i> Selecione seu Plano</h2>
-            <p style="color: var(--gray);">Você será redirecionado para o ambiente seguro do Pagar.me para concluir o pagamento.</p>
+<div class="checkout-container">
+    <div class="card">
+        <h2><i class="fas fa-credit-card" style="margin-right: 10px;"></i> Selecione seu Plano</h2>
+        <p style="color: var(--gray);">Você será redirecionado para o ambiente seguro do Pagar.me para concluir o pagamento.</p>
 
-            <div class="plan-option" onclick="selecionarPlano('mensal')">
-                <div>
-                    <strong>Plano Mensal</strong><br>
-                    <small>Acesso total ao sistema</small>
-                </div>
-                <div>
-                    <span style="font-weight: bold; color: var(--primary);">R$ 97,00</span>
-                </div>
+        <div class="plan-option" data-plano="mensal">
+            <div>
+                <strong>Plano Mensal</strong><br>
+                <small>Acesso total ao sistema</small>
             </div>
-
-            <div class="plan-option" onclick="selecionarPlano('anual')">
-                <div>
-                    <strong>Plano Anual</strong> <span class="badge-anual">ECONOMIZE 20%</span><br>
-                    <small>Ideal para empresas estabelecidas</small>
-                </div>
-                <div>
-                    <span style="font-weight: bold; color: var(--primary);">R$ 970,00</span>
-                </div>
+            <div>
+                <span style="font-weight: bold; color: var(--primary);">R$ 97,00</span>
             </div>
-
-            <button onclick="alert('Por favor, selecione um dos planos acima para prosseguir.')" class="btn-checkout">
-                PAGAR COM SEGURANÇA
-            </button>
         </div>
 
-        <div class="price-summary">
-            <h3>Resumo do Pedido</h3>
-            <div class="item-price">
-                <span>Assinatura Squedy</span>
-                <span>R$ 97,00</span>
+        <div class="plan-option" data-plano="anual">
+            <div>
+                <strong>Plano Anual</strong> <span class="badge-anual">ECONOMIZE 20%</span><br>
+                <small>Ideal para empresas estabelecidas</small>
             </div>
-            <div class="item-price">
-                <span>Taxa de Ativação</span>
-                <span style="color:var(--success)">GRÁTIS</span>
-            </div>
-            <div class="total">
-                <span>TOTAL HOJE</span>
-                <span>R$ 97,00</span>
-            </div>
-
-            <div style="margin-top: 20px; background: #fff; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary);">
-                <small style="color: var(--gray);">
-                    <i class="fas fa-lock"></i> Pagamento processado por <strong>Pagar.me (Stone Co.)</strong>. 
-                    Seu cartão e seus dados estão 100% seguros.
-                </small>
+            <div>
+                <span style="font-weight: bold; color: var(--primary);">R$ 970,00</span>
             </div>
         </div>
+
+        <button class="btn-checkout">PAGAR COM SEGURANÇA</button>
     </div>
 
+    <div class="price-summary">
+        <h3>Resumo do Pedido</h3>
+        <div class="item-price">
+            <span>Assinatura Squedy</span>
+            <span>R$ 97,00</span>
+        </div>
+        <div class="item-price">
+            <span>Taxa de Ativação</span>
+            <span style="color:var(--success)">GRÁTIS</span>
+        </div>
+        <div class="total">
+            <span>TOTAL HOJE</span>
+            <span>R$ 97,00</span>
+        </div>
+
+        <div style="margin-top: 20px; background: #fff; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary);">
+            <small style="color: var(--gray);">
+                <i class="fas fa-lock"></i> Pagamento processado por <strong>Pagar.me (Stone Co.)</strong>. 
+                Seu cartão e seus dados estão 100% seguros.
+            </small>
+        </div>
+    </div>
+</div>
+
 <script>
-  const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmeXlpYXJzdmppaXNkdm5odnRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwODEwMzYsImV4cCI6MjA4MzY1NzAzNn0.mlAW9b0dsewLUqvtyY1tEOTY643_sNGIgiVEgCCgADs';
+const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmeXlpYXJzdmppaXNkdm5odnRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwODEwMzYsImV4cCI6MjA4MzY1NzAzNn0.mlAW9b0dsewLUqvtyY1tEOTY643_sNGIgiVEgCCgADs';
 
-  // 1) cria o client Supabase para este arquivo
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let planoSelecionado = null;
+let planoSelecionado = null;
 
-  const resumoDescricao = document.querySelector('.item-price span');
-  const resumoValor = document.querySelector('.item-price span:last-child');
-  const totalValor = document.querySelector('.total span:last-child');
-  const botao = document.querySelector('.btn-checkout');
-  const planos = document.querySelectorAll('.plan-option');
+const resumoDescricao = document.querySelector('.item-price span');
+const resumoValor = document.querySelector('.item-price span:last-child');
+const totalValor = document.querySelector('.total span:last-child');
+const botao = document.querySelector('.btn-checkout');
+const planos = document.querySelectorAll('.plan-option');
 
-  function selecionarPlano(plano) {
-    planoSelecionado = plano;
+// Seleciona o plano
+planos.forEach(plano => {
+    plano.addEventListener('click', () => {
+        planoSelecionado = plano.getAttribute('data-plano');
 
-    planos.forEach(p => p.classList.remove('selected'));
+        // Remove seleção antiga
+        planos.forEach(p => p.classList.remove('selected'));
+        plano.classList.add('selected');
 
-    const planoDiv = [...planos].find(p =>
-      p.getAttribute('onclick')?.includes(plano)
-    );
-    planoDiv.classList.add('selected');
+        // Atualiza valores do resumo
+        if (planoSelecionado === 'mensal') {
+            resumoDescricao.textContent = 'Assinatura Squedy (Mensal)';
+            resumoValor.textContent = 'R$ 97,00';
+            totalValor.textContent = 'R$ 97,00';
+        } else {
+            resumoDescricao.textContent = 'Assinatura Squedy (Anual)';
+            resumoValor.textContent = 'R$ 970,00';
+            totalValor.textContent = 'R$ 970,00';
+        }
+    });
+});
 
-    if (plano === 'mensal') {
-      resumoDescricao.textContent = 'Assinatura Squedy (Mensal)';
-      resumoValor.textContent = 'R$ 97,00';
-      totalValor.textContent = 'R$ 97,00';
-    } else {
-      resumoDescricao.textContent = 'Assinatura Squedy (Anual)';
-      resumoValor.textContent = 'R$ 970,00';
-      totalValor.textContent = 'R$ 970,00';
-    }
-
-    botao.onclick = iniciarCheckout;
-  }
-
-  async function iniciarCheckout() {
+// Checkout
+botao.addEventListener('click', async () => {
     if (!planoSelecionado) {
-      alert('Selecione um plano para continuar.');
-      return;
+        alert('Por favor, selecione um plano antes de prosseguir.');
+        return;
     }
 
     botao.disabled = true;
     botao.textContent = 'Redirecionando...';
 
     try {
-      // 2) pega o usuário logado da sessão atual
-      const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+        const response = await fetch(
+            `${SUPABASE_URL}/functions/v1/PAGARME_API_KEY`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                },
+                body: JSON.stringify({
+                    plan_id: planoSelecionado,
+                    user_id: 'c630ad2f-d3c5-4211-801e-f6c1553556b6' // seu UUID do usuário
+                })
+            }
+        );
 
-      if (userError || !user) {
-        // Se não estiver logado, orienta o usuário a logar
-        throw new Error("Você precisa estar logado para continuar.");
-      }
+        const data = await response.json();
 
-      // 3) envia o ID real do usuário
-      const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/PAGARME_API_KEY`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          },
-          body: JSON.stringify({
-            plan_id: planoSelecionado,
-            user_id: c630ad2f-d3c5-4211-801e-f6c1553556b6   // <-- user.id aqui agora é o ID do usuário logado
-          })
+        if (!response.ok || !data.checkout_url) {
+            throw new Error(data.error || 'Erro ao iniciar pagamento');
         }
-      );
 
-      const data = await response.json();
-
-      if (!response.ok || !data.checkout_url) {
-        throw new Error(data.error || 'Erro ao iniciar pagamento');
-      }
-
-      window.location.href = data.checkout_url;
+        window.location.href = data.checkout_url;
 
     } catch (err) {
-      alert(err.message);
-      botao.disabled = false;
-      botao.textContent = 'PAGAR COM SEGURANÇA';
+        alert(err.message);
+        botao.disabled = false;
+        botao.textContent = 'PAGAR COM SEGURANÇA';
     }
-  }
+});
 </script>
 
 </body>
-
 </html>
-
-
