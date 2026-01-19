@@ -114,7 +114,9 @@
 <script>
   const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmeXlpYXJzdmppaXNkdm5odnRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwODEwMzYsImV4cCI6MjA4MzY1NzAzNn0.mlAW9b0dsewLUqvtyY1tEOTY643_sNGIgiVEgCCgADs';
-;
+
+  // 1) cria o client Supabase para este arquivo
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let planoSelecionado = null;
 
@@ -157,6 +159,15 @@
     botao.textContent = 'Redirecionando...';
 
     try {
+      // 2) pega o usuário logado da sessão atual
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+
+      if (userError || !user) {
+        // Se não estiver logado, orienta o usuário a logar
+        throw new Error("Você precisa estar logado para continuar.");
+      }
+
+      // 3) envia o ID real do usuário
       const response = await fetch(
         `${SUPABASE_URL}/functions/v1/PAGARME_API_KEY`,
         {
@@ -167,7 +178,7 @@
           },
           body: JSON.stringify({
             plan_id: planoSelecionado,
-            user_id: 'checkout_publico'
+            user_id: user.id   // <-- aqui agora é o ID do usuário logado
           })
         }
       );
@@ -191,3 +202,4 @@
 </body>
 
 </html>
+
