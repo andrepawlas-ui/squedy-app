@@ -129,7 +129,7 @@ botao.addEventListener('click', async () => {
     botao.disabled = true;
     botao.textContent = 'Redirecionando...';
 
-    try {
+try {
         const response = await fetch(
             `${SUPABASE_URL}/functions/v1/PAGARME_API_KEY`,
             {
@@ -144,18 +144,6 @@ botao.addEventListener('click', async () => {
                 })
             }
         );
-
-
-        // 🔴 ESSENCIAL PARA O PAGAR.ME
-        item: {
-          code: `squedy-${planoSelecionado}`, // ex: squedy-mensal
-          name: 'Assinatura Squedy - Mensal',
-          amount: 9700,
-          quantity: 1
-        }
-      })
-    }
-  );
 
         const data = await response.json();
 
@@ -175,6 +163,7 @@ botao.addEventListener('click', async () => {
 
 </body>
 </html>
+
 
 
 
