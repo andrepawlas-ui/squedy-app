@@ -131,7 +131,7 @@ botao.addEventListener('click', async () => {
 
  try {
   const response = await fetch(
-    `${SUPABASE_URL}/functions/v1/pagarme-create-checkout`,
+    `${SUPABASE_URL}/functions/v1/PAGARME_API_KEY`,
     {
       method: 'POST',
       headers: {
@@ -171,4 +171,5 @@ botao.addEventListener('click', async () => {
 
 </body>
 </html>
+
 
