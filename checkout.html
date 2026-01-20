@@ -129,18 +129,22 @@ botao.addEventListener('click', async () => {
     botao.disabled = true;
     botao.textContent = 'Redirecionando...';
 
- try {
-  const response = await fetch(
-    `${SUPABASE_URL}/functions/v1/PAGARME_API_KEY`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify({
-        plan_id: planoSelecionado,
-        user_id: 'c630ad2f-d3c5-4211-801e-f6c1553556b6', // user.id
+    try {
+        const response = await fetch(
+            `${SUPABASE_URL}/functions/v1/PAGARME_API_KEY`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                },
+                body: JSON.stringify({
+                    plan_id: planoSelecionado,
+                    user_id: 'c630ad2f-d3c5-4211-801e-f6c1553556b6' // seu UUID do usuário
+                })
+            }
+        );
+
 
         // 🔴 ESSENCIAL PARA O PAGAR.ME
         item: {
@@ -171,5 +175,6 @@ botao.addEventListener('click', async () => {
 
 </body>
 </html>
+
 
 
