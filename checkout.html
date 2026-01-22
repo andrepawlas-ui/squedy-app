@@ -130,23 +130,22 @@ botao.addEventListener('click', async () => {
     botao.textContent = 'Redirecionando...';
 
     try {
-        // 🔐 PEGA A SESSÃO REAL DO USUÁRIO
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session }, error } = await _supabase.auth.getSession();
 
         if (error || !session) {
             throw new Error("Usuário não autenticado");
         }
 
         const response = await fetch(
-            `${SUPABASE_URL}/functions/v1/PAGARME_API_KEY`, // ✅ nome da Edge Function
+            `${SUPABASE_URL}/functions/v1/PAGARME_API_KEY`,
             {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${session.access_token}` // ✅ JWT REAL
+                    Authorization: `Bearer ${session.access_token}`
                 },
                 body: JSON.stringify({
-                    plan_id: planoSelecionado // ✅ só o plano
+                    plan_id: planoSelecionado
                 })
             }
         );
@@ -157,7 +156,6 @@ botao.addEventListener('click', async () => {
             throw new Error(data.error || 'Erro ao iniciar pagamento');
         }
 
-        // 🚀 REDIRECIONA PARA O PAGAR.ME
         window.location.href = data.checkout_url;
 
     } catch (err) {
@@ -170,6 +168,7 @@ botao.addEventListener('click', async () => {
 
 </body>
 </html>
+
 
 
 
