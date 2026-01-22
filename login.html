@@ -1,143 +1,166 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <title>Squedy • Login / Cadastro</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squedy - Login / Cadastro</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    :root { --primary:#2563eb; --bg:#f8fafc; }
-    body {
-      font-family: Segoe UI, sans-serif;
-      background: var(--bg);
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      margin:0;
-    }
-    .login-card {
-      background:#fff;
-      padding:2rem;
-      border-radius:12px;
-      width:100%;
-      max-width:400px;
-      box-shadow:0 10px 15px -3px rgba(0,0,0,.1);
-    }
-    h2 { text-align:center; color:var(--primary); }
-    label { display:block; margin:0.5rem 0; }
-    input {
-      width:100%;
-      padding:0.7rem;
-      border:1px solid #cbd5e1;
-      border-radius:6px;
-    }
-    button {
-      width:100%;
-      margin-top:1rem;
-      padding:0.75rem;
-      border:none;
-      border-radius:6px;
-      background:var(--primary);
-      color:#fff;
-      font-weight:bold;
-      cursor:pointer;
-    }
-    .error {
-      color:#dc2626;
-      font-size:0.85rem;
-      text-align:center;
-      margin-top:0.5rem;
-      display:none;
-    }
-    .switch {
-      text-align:center;
-      margin-top:1rem;
-      font-size:0.85rem;
-    }
-    .switch a {
-      color:#2563eb;
-      cursor:pointer;
-      font-weight:bold;
-      text-decoration:none;
-    }
-  </style>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .form-group { margin-bottom: 1rem; }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #475569;
+        }
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        button:hover { background: #1d4ed8; }
+
+        .error {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            text-align: center;
+            display: none;
+        }
+
+        .switch {
+            text-align: center;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+        }
+        .switch a {
+            color: #2563eb;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+        }
+    </style>
 </head>
 
 <body>
 
 <div class="login-card">
-  <h2 id="title">Entrar no Squedy</h2>
+    <h2 id="title">Entrar no Squedy</h2>
 
-  <label>E-mail</label>
-  <input type="email" id="email">
+    <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" id="email" placeholder="seu@email.com">
+    </div>
 
-  <label>Senha</label>
-  <input type="password" id="password">
+    <div class="form-group">
+        <label>Senha</label>
+        <input type="password" id="password" placeholder="******">
+    </div>
 
-  <div id="error-msg" class="error"></div>
+    <div id="error-msg" class="error"></div>
 
-  <button id="auth-button" onclick="handleAuth()">Entrar</button>
+    <button id="auth-button" onclick="handleAuth()">Entrar</button>
 
-  <div class="switch">
-    <span id="auth-switch-text">Não tem conta?</span>
-    <a onclick="toggleAuthMode()" id="auth-switch-link">Cadastre-se</a>
-  </div>
+    <div class="switch">
+        <span id="switch-text">Não tem conta?</span>
+        <a onclick="toggleAuthMode()" id="switch-link">Cadastre-se</a>
+    </div>
+
+    <p style="text-align: center; font-size: 0.8rem; margin-top: 1rem;">
+        <a href="index.html" style="color: #64748b;">Voltar para o início</a>
+    </p>
 </div>
 
 <script>
-  const SUPABASE_URL = "https://zfyyiarsvjiisdvnhvtk.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_EJIgtPIhhfnIyaALnIw0JQ_r6Kc6cbp";
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // CONFIGURAÇÃO SUPABASE
+    const SUPABASE_URL = 'https://zfyyiarsvjiisdvnhvtk.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_EJIgtPIhhfnIyaALnIw0JQ_r6Kc6cbp';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  let isSignUpMode = false;
+    let isSignUpMode = false;
 
-  function toggleAuthMode() {
-    isSignUpMode = !isSignUpMode;
+    function toggleAuthMode() {
+        isSignUpMode = !isSignUpMode;
 
-    document.getElementById("title").innerText =
-      isSignUpMode ? "Criar Conta" : "Entrar no Squedy";
+        document.getElementById('title').innerText =
+            isSignUpMode ? 'Criar Conta' : 'Entrar no Squedy';
 
-    document.getElementById("auth-button").innerText =
-      isSignUpMode ? "Cadastrar" : "Entrar";
+        document.getElementById('auth-button').innerText =
+            isSignUpMode ? 'Cadastrar' : 'Entrar';
 
-    document.getElementById("auth-switch-text").innerText =
-      isSignUpMode ? "Já tem conta?" : "Não tem conta?";
+        document.getElementById('switch-text').innerText =
+            isSignUpMode ? 'Já tem conta?' : 'Não tem conta?';
 
-    document.getElementById("auth-switch-link").innerText =
-      isSignUpMode ? "Entrar" : "Cadastre-se";
+        document.getElementById('switch-link').innerText =
+            isSignUpMode ? 'Entrar' : 'Cadastre-se';
 
-    document.getElementById("error-msg").style.display = "none";
-  }
-
-  async function handleAuth() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const errorDiv = document.getElementById("error-msg");
-
-    let result;
-
-    if (isSignUpMode) {
-      result = await supabaseClient.auth.signUp({
-        email,
-        password,
-      });
-    } else {
-      result = await supabaseClient.auth.signInWithPassword({
-        email,
-        password,
-      });
+        document.getElementById('error-msg').style.display = 'none';
     }
 
-    if (result.error) {
-      errorDiv.innerText = result.error.message;
-      errorDiv.style.display = "block";
-      return;
-    }
+    async function handleAuth() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const errorDiv = document.getElementById('error-msg');
 
-    // sucesso
-    window.location.href = "painel.html";
-  }
+        let result;
+
+        if (isSignUpMode) {
+            result = await _supabase.auth.signUp({
+                email,
+                password
+            });
+        } else {
+            result = await _supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+        }
+
+        if (result.error) {
+            errorDiv.innerText = "Erro: " + result.error.message;
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        // Login ou cadastro OK
+        window.location.href = 'painel.html';
+    }
 </script>
 
 </body>
