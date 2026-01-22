@@ -138,7 +138,7 @@ botao.addEventListener('click', async () => {
         }
 
         const response = await fetch(
-            `${SUPABASE_URL}/functions/v1/checkout`, // ✅ nome da Edge Function
+            `${SUPABASE_URL}/functions/v1/PAGARME_API_KEY`, // ✅ nome da Edge Function
             {
                 method: 'POST',
                 headers: {
@@ -170,6 +170,7 @@ botao.addEventListener('click', async () => {
 
 </body>
 </html>
+
 
 
 
