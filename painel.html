@@ -10,6 +10,17 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
 
     <style>
+	
+			#secao-licenca {
+    width: 100%; /* Agora ela ocupa o espaço total da main-content */
+}
+
+#secao-licenca h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: var(--dark-blue);
+}
+
 			/* Estilo para Ícones de Informação e Tooltips */
 		.info-tip {
 			color: var(--primary);
@@ -85,7 +96,58 @@
 
         /* SIDEBAR */
         .sidebar { width: var(--sidebar-width); background: var(--dark-blue); height: 100vh; color: white; position: fixed; display: flex; flex-direction: column; z-index: 100; }
-        .sidebar-header { padding: 30px; font-size: 1.5rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+.sidebar-header {
+    display: flex;
+    flex-direction: column; /* Empilha o ícone e o texto */
+    align-items: center;    /* Centraliza horizontalmente */
+    justify-content: center;
+    padding: 20px 0;        /* Espaçamento interno */
+    width: 100%;
+    text-align: center;
+}
+.sidebar-header h1, 
+.sidebar-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;              /* Espaço entre o ícone e o nome */
+    font-size: 1.5rem;
+    color: white;
+    margin: 0;
+}
+
+.sidebar-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;      /* Espaço entre o botão e as bordas da sidebar */
+    width: 100%;        /* Ocupa a largura total da sidebar */
+    box-sizing: border-box; /* Garante que o padding não aumente o tamanho total */
+}
+
+.btn-sair {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    /* Remove o vermelho e usa o fundo transparente ou da sidebar */
+    background-color: transparent; 
+    color: #ff4d4d !important; /* Mantém apenas o texto em um tom de vermelho suave */
+    padding: 10px;
+    border: 1px solid rgba(255, 77, 77, 0.3); /* Borda fina e discreta */
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    width: 100%;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.btn-sair:hover {
+    /* No hover, ele ganha um fundo leve para mostrar que é clicável */
+    background-color: rgba(255, 77, 77, 0.1);
+    border-color: #ff4d4d;
+    text-decoration: none;
+}
         .nav-links { flex: 1; padding: 20px; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: #94a3b8; text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: 0.3s; cursor: pointer; }
         .nav-item:hover, .nav-item.active { background: #1e293b; color: white; }
@@ -140,8 +202,9 @@
 </head>
 <body>
     <div class="sidebar">
-			<h2><i class="fas fa-calendar-check"></i> Squedy</h2>
-			
+<div class="sidebar-header">
+    <h2><i class="fas fa-calendar-alt"></i> Squedy</h2>
+</div>			
         <div class="nav-links">
             <a id="menu-lembretes" class="nav-item active" onclick="mudarAba('lembretes')"><i class="fas fa-home"></i> Dashboard</a>
             <a id="menu-clientes" class="nav-item" onclick="mudarAba('clientes')"><i class="fas fa-users"></i> Meus Clientes</a>
@@ -150,9 +213,11 @@
             <a id="menu-configuracoes" class="nav-item" onclick="mudarAba('configuracoes')"><i class="fas fa-cog"></i> Configurações</a>
 			<a id="menu-licenca" class="nav-item" onclick="mudarAba('licenca')"><i class="fas fa-key"></i> Licença de Uso</a>
         </div>
-        <div style="padding: 20px; border-top: 1px solid #1e293b;">
-<a href="javascript:void(0)" onclick="handleLogout()">Sair</a>
-        </div>
+<div class="sidebar-footer">
+    <a href="javascript:void(0)" onclick="handleLogout()" class="btn-sair">
+        <i class="fas fa-sign-out-alt"></i> Sair
+    </a>
+</div>
     </div>
 
     <div class="main-content">
@@ -201,41 +266,43 @@
         <div id="secao-mensagens" class="aba-conteudo" style="display:none;">
             <div class="data-table-container">
                 <div class="header-top">
-                    <h2>Modelos de Mensagem</h2>
+                    <h2>Modelos de Mensagem - Exemplos</h2>
                     <button onclick="abrirModalTemplate()" class="btn-add"><i class="fas fa-plus"></i> Novo Modelo</button>
                 </div>
                 <div id="grid-templates" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;"></div>
             </div>
         </div>
 
-        <div id="secao-configuracoes" class="aba-conteudo" style="display:none;">
-            <div class="data-table-container" style="max-width: 600px;">
-                 <h2>Backup dos Clientes</h2>
-                  <!-- <div class="form-group"><label>Nome da Empresa</label><input type="text" id="config_business_name"></div>
-                <div class="form-group"><label>Nome do Responsável</label><input type="text" id="config_owner_name"></div>
-                <div class="form-group"><label>Rodapé Padrão</label><textarea id="config_footer" rows="2"></textarea></div>
-                <button onclick="salvarConfiguracoes()" class="btn-add" style="width:100%; justify-content:center;">Salvar Ajustes</button>
-                <hr style="margin:20px 0;"> -->
-                <button onclick="exportarExcel()" class="btn-whatsapp" style="width:100%; background:var(--dark-blue); justify-content:center;">Exportar CSV</button>
-            </div>
-        </div>
-    </div>
-
- <div id="secao-licenca" class="aba-conteudo" style="display:none;">
-    <div class="data-table-container" style="max-width: 600px;">
-        <h2>Licença de Uso</h2>
-        <p>Seu status atual de licença:</p>
-        <div style="margin: 15px 0;">
-            <span id="licenca-status" class="badge-status" style="font-size: 1rem; padding: 10px 15px;">Carregando...</span>
-        </div>
-        <p>Data de expiração:</p>
-        <div style="margin-bottom: 15px;">
-            <span id="licenca-expira" style="font-weight: bold;">--/--/----</span>
-        </div>
-        <button id="btn-renovar" class="btn-add">Renovar / Atualizar Licença</button>
+<div id="secao-configuracoes" class="aba-conteudo" style="display:none;">
+    <div class="data-table-container"> <h2>Backup dos Clientes</h2>
+        <p style="color: #64748b; margin-bottom: 20px;">Exporte sua base de dados para segurança em formato CSV.</p>
+        <button onclick="exportarExcel()" class="btn-whatsapp" style="width:100%; max-width: 300px; background:var(--dark-blue); justify-content:center;">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+        </button>
     </div>
 </div>
 
+<div id="secao-licenca" class="aba-conteudo" style="display:none;">
+    <div class="data-table-container"> <div class="table-header">
+            <h2>Licença de Uso</h2>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <p style="margin-bottom: 10px;"><strong>Status atual:</strong> 
+                <span id="licenca-status" class="badge-status status-hoje" style="margin-left: 10px;">Carregando...</span>
+            </p>
+            <p><strong>Data de expiração:</strong> 
+                <span id="licenca-expira" style="margin-left: 10px; color: var(--text);">--/--/----</span>
+            </p>
+        </div>
+
+        <button id="btn-renovar" class="btn-add" style="max-width: 300px;">
+            <i class="fas fa-sync-alt"></i> Renovar / Atualizar Licença
+        </button>
+    </div>
+</div>
+
+</div>
 
         <div id="modalAgendamento" class="modal-overlay">
         <div class="modal-content">
@@ -596,33 +663,55 @@ function inicializarCalendario() {
 			document.body.removeChild(link);
 		}
 		
-		async function carregarLicenca() {
+async function carregarLicenca() {
     const { data: { session } } = await _supabase.auth.getSession();
     if (!session) return;
 
-    const { data: profile, error } = await _supabase
-        .from('profiles')
-        .select('plan_status, expires_at')
-        .eq('id', session.user.id)
-        .single();
+    // ALTERADO: Agora procura na tabela 'subscriptions'
+    const { data: subscription, error } = await _supabase
+        .from('subscriptions') 
+        .select('status, current_period_end') // Usando os nomes que aparecem na sua foto
+        .eq('user_id', session.user.id) // Verifique se nesta tabela a coluna é 'user_id' ou 'id'
+        .maybeSingle();
 
-    if (error || !profile) {
-        document.getElementById('licenca-status').innerText = 'Erro ao carregar';
-        document.getElementById('licenca-expira').innerText = '--/--/----';
+    if (error) {
+        console.error("Erro ao carregar subscriptions:", error.message);
         return;
     }
 
-    const statusMap = {
-        free: 'Gratuita',
-        trialing: 'Trial Ativo',
-        active: 'Ativa',
-        expired: 'Expirada'
-    };
+    if (subscription) {
+        // 1. Atualiza o Status
+        const statusMap = {
+            'active': 'ATIVA',
+            'trialing': 'TESTE',
+            'past_due': 'ATRASADA',
+            'canceled': 'CANCELADA'
+        };
+        
+        const statusElement = document.getElementById('licenca-status');
+        const statusBanco = subscription.status; // Na tabela subscriptions geralmente o campo é 'status'
+        statusElement.innerText = statusMap[statusBanco] || statusBanco || 'SEM STATUS';
 
-    document.getElementById('licenca-status').innerText = statusMap[profile.plan_status] || profile.plan_status;
-    document.getElementById('licenca-expira').innerText = profile.expires_at 
-        ? new Date(profile.expires_at).toLocaleDateString('pt-BR') 
-        : 'Indefinida';
+        // 2. Atualiza a Data (2026-02-22)
+        const expiraElement = document.getElementById('licenca-expira');
+        
+        if (subscription.current_period_end) {
+            const dataFim = new Date(subscription.current_period_end);
+            expiraElement.innerText = dataFim.toLocaleDateString('pt-BR');
+
+            // Se a data já passou, avisa em vermelho
+            if (dataFim < new Date()) {
+                expiraElement.style.color = 'var(--danger)';
+            } else {
+                expiraElement.style.color = 'var(--text)';
+            }
+        } else {
+            expiraElement.innerText = "Sem data definida";
+        }
+    } else {
+        console.log("Nenhuma assinatura encontrada para este utilizador na tabela subscriptions.");
+        document.getElementById('licenca-expira').innerText = "Sem assinatura ativa";
+    }
 }
 
         // --- SALVAR AGENDAMENTO ---
@@ -703,9 +792,7 @@ async function salvarAgendamento() {
 								<p style="font-size: 0.85rem; color: #64748b; line-height: 1.5; margin-bottom: 15px;">
 									${t.content.substring(0, 100)}${t.content.length > 100 ? '...' :埋}
 								</p>
-								<button onclick="excluirTemplate('${t.id}')" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.8rem; font-weight: 600; padding: 0;">
-									<i class="fas fa-trash-alt"></i> Excluir Modelo
-								</button>
+	
 							</div>`;
 					});
 				} else {
@@ -947,10 +1034,11 @@ window.addEventListener('load', async () => {
         await carregarDados(); // Carrega os dados só se passar na assinatura
     }
 });
- // Coloque aqui o comando do botão de renovar licenca
-    document.getElementById('btn-renovar').onclick = () => {
-        window.location.href = 'checkout.html';
-    };
+// Botão de renovar licença
+document.getElementById('btn-renovar').onclick = () => {
+    window.location.href = 'checkout.html';
+};
+
     </script>
 </body>
 
