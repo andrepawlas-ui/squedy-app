@@ -148,6 +148,7 @@
             <a id="menu-calendario" class="nav-item" onclick="mudarAba('calendario')"><i class="fas fa-calendar-alt"></i> Calendário</a>
             <a id="menu-mensagens" class="nav-item" onclick="mudarAba('mensagens')"><i class="fas fa-comment-dots"></i> Mensagens</a>
             <a id="menu-configuracoes" class="nav-item" onclick="mudarAba('configuracoes')"><i class="fas fa-cog"></i> Configurações</a>
+			<a id="menu-licenca" class="nav-item" onclick="mudarAba('licenca')"><i class="fas fa-key"></i> Licença de Uso</a>
         </div>
         <div style="padding: 20px; border-top: 1px solid #1e293b;">
 <a href="javascript:void(0)" onclick="handleLogout()">Sair</a>
@@ -219,6 +220,22 @@
             </div>
         </div>
     </div>
+
+ <div id="secao-licenca" class="aba-conteudo" style="display:none;">
+    <div class="data-table-container" style="max-width: 600px;">
+        <h2>Licença de Uso</h2>
+        <p>Seu status atual de licença:</p>
+        <div style="margin: 15px 0;">
+            <span id="licenca-status" class="badge-status" style="font-size: 1rem; padding: 10px 15px;">Carregando...</span>
+        </div>
+        <p>Data de expiração:</p>
+        <div style="margin-bottom: 15px;">
+            <span id="licenca-expira" style="font-weight: bold;">--/--/----</span>
+        </div>
+        <button id="btn-renovar" class="btn-add">Renovar / Atualizar Licença</button>
+    </div>
+</div>
+
 
         <div id="modalAgendamento" class="modal-overlay">
         <div class="modal-content">
@@ -331,6 +348,8 @@ checarAssinatura();
             if(idAba === 'calendario') inicializarCalendario();
             if(idAba === 'mensagens') carregarTemplates();
             if(idAba === 'configuracoes') carregarConfiguracoes();
+			if(idAba === 'licenca') carregarLicenca();
+
         }
 function inicializarCalendario() {
     const calendarEl = document.getElementById('calendar');
@@ -576,6 +595,36 @@ function inicializarCalendario() {
 			link.click();
 			document.body.removeChild(link);
 		}
+		
+		async function carregarLicenca() {
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: profile, error } = await _supabase
+        .from('profiles')
+        .select('plan_status, expires_at')
+        .eq('id', session.user.id)
+        .single();
+
+    if (error || !profile) {
+        document.getElementById('licenca-status').innerText = 'Erro ao carregar';
+        document.getElementById('licenca-expira').innerText = '--/--/----';
+        return;
+    }
+
+    const statusMap = {
+        free: 'Gratuita',
+        trialing: 'Trial Ativo',
+        active: 'Ativa',
+        expired: 'Expirada'
+    };
+
+    document.getElementById('licenca-status').innerText = statusMap[profile.plan_status] || profile.plan_status;
+    document.getElementById('licenca-expira').innerText = profile.expires_at 
+        ? new Date(profile.expires_at).toLocaleDateString('pt-BR') 
+        : 'Indefinida';
+}
+
         // --- SALVAR AGENDAMENTO ---
 // --- SALVAR AGENDAMENTO ATUALIZADO ---
 async function salvarAgendamento() {
@@ -898,6 +947,10 @@ window.addEventListener('load', async () => {
         await carregarDados(); // Carrega os dados só se passar na assinatura
     }
 });
+ // Coloque aqui o comando do botão de renovar licenca
+    document.getElementById('btn-renovar').onclick = () => {
+        window.location.href = 'checkout.html';
+    };
     </script>
 </body>
 
