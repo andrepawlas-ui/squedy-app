@@ -11,6 +11,20 @@
 
     <style>
 	
+	.action-buttons {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+}
+
+	.btn-editar {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 			#secao-licenca {
     width: 100%; /* Agora ela ocupa o espaço total da main-content */
 }
@@ -372,6 +386,9 @@
 
         let calendar;
         let clientesCadastrados = [];
+		let lembreteEmEdicao = null;
+		
+
         // FUNÇÃO checar assinatura
 
 async function checarAssinatura() {
@@ -504,7 +521,9 @@ function inicializarCalendario() {
 						<td><span class="badge-status status-hoje">${statusPT}</span></td>
 						<td>
 							<div class="action-buttons">
-								<a href="${linkWa}" target="_blank" class="btn-whatsapp" onclick="marcarComoEnviado('${item.id}')"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+<button class="btn-add btn-editar" onclick="editarAgendamento('${item.id}')">
+    <i class="fas fa-edit"></i>
+</button>								<a href="${linkWa}" target="_blank" class="btn-whatsapp" onclick="marcarComoEnviado('${item.id}')"><i class="fab fa-whatsapp"></i> WhatsApp</a>
 								<a href="${linkEmail}" class="btn-email" style="${item.clients?.email ? '' : 'display:none'}" onclick="marcarComoEnviado('${item.id}')"><i class="fas fa-envelope"></i> E-mail</a>
 								<button class="btn-ignore" onclick="ignorarLembrete('${item.id}')"><i class="fas fa-eye-slash"></i> Ignorar</button>
 							</div>
@@ -717,59 +736,84 @@ async function carregarLicenca() {
         // --- SALVAR AGENDAMENTO ---
 // --- SALVAR AGENDAMENTO ATUALIZADO ---
 async function salvarAgendamento() {
-    // 1. Pegar o usuário logado no momento
     const { data: { user } } = await _supabase.auth.getUser();
-    
+
     if (!user) {
-        alert("Sessão expirada. Por favor, faça login novamente.");
+        alert("Sessão expirada. Faça login novamente.");
         return;
     }
 
     const nome = document.getElementById('new_name').value;
     const fone = document.getElementById('new_phone').value.replace(/\D/g, '');
     const dataRef = document.getElementById('new_date').value;
-    
-    // 2. Salvar/Atualizar Cliente (passando o user_id e tratando o conflito duplo)
+
+    // 1. Cliente
     const { data: cliente, error: errorCliente } = await _supabase
         .from('clients')
-        .upsert({ 
-            name: nome, 
-            phone: fone, 
-            user_id: user.id // Vincula o cliente ao seu usuário
-        }, { 
-            onConflict: 'phone,user_id' // A chave única agora são os dois campos
-        })
+        .upsert(
+            {
+                name: nome,
+                phone: fone,
+                user_id: user.id
+            },
+            { onConflict: 'phone,user_id' }
+        )
         .select()
         .single();
 
-    if (errorCliente) {
-        console.error("Erro ao salvar cliente:", errorCliente);
-        alert("Erro ao identificar cliente. Verifique os dados.");
+    if (errorCliente || !cliente) {
+        console.error(errorCliente);
+        alert("Erro ao salvar cliente.");
         return;
     }
-    
-    // 3. Inserir o Lembrete vinculado ao cliente e ao usuário
-    const { error: errorLembrete } = await _supabase
-        .from('reminders')
-        .insert({
-            client_id: cliente.id,
-            user_id: user.id, // Garante que o lembrete é seu
-            title: document.getElementById('new_title').value,
-            event_date: dataRef,
-            message_template: document.getElementById('new_msg').value,
-            status: 'pending'
-        });
+
+    // 2. Lembrete (INSERT ou UPDATE)
+    let query;
+
+    if (lembreteEmEdicao) {
+        // ✏️ EDITAR
+        query = _supabase
+            .from('reminders')
+            .update({
+                client_id: cliente.id,
+                title: document.getElementById('new_title').value,
+                event_date: dataRef,
+                message_template: document.getElementById('new_msg').value
+            })
+            .eq('id', lembreteEmEdicao)
+            .eq('user_id', user.id);
+    } else {
+        // ➕ NOVO
+        query = _supabase
+            .from('reminders')
+            .insert({
+                client_id: cliente.id,
+                user_id: user.id,
+                title: document.getElementById('new_title').value,
+                event_date: dataRef,
+                message_template: document.getElementById('new_msg').value,
+                status: 'pending'
+            });
+    }
+
+    const { error: errorLembrete } = await query;
 
     if (errorLembrete) {
-        console.error("Erro ao salvar lembrete:", errorLembrete);
-        alert("Erro ao agendar lembrete.");
-    } else {
-        fecharModal();
-        carregarDados();
-        // Opcional: recarregar lista de clientes para o auto-complete atualizar
-        if (typeof carregarListaClientes === "function") carregarListaClientes();
+        console.error(errorLembrete);
+        alert("Erro ao salvar agendamento.");
+        return;
+    }
+
+    // 3. Reset de estado
+    lembreteEmEdicao = null;
+    fecharModal();
+    carregarDados();
+
+    if (typeof carregarListaClientes === "function") {
+        carregarListaClientes();
     }
 }
+
 
 // --- GESTÃO DE MODELOS DE MENSAGENS (GRID) ---
 			async function carregarTemplates() {
@@ -1038,8 +1082,45 @@ window.addEventListener('load', async () => {
 document.getElementById('btn-renovar').onclick = () => {
     window.location.href = 'checkout.html';
 };
+//editar agendamento
+function editarLembrete(lembrete) {
+    lembreteEmEdicao = lembrete.id;
+
+    document.getElementById('new_name').value = lembrete.clients.name;
+    document.getElementById('new_phone').value = lembrete.clients.phone;
+    document.getElementById('new_title').value = lembrete.title;
+    document.getElementById('new_date').value = lembrete.event_date;
+    document.getElementById('new_msg').value = lembrete.message_template;
+
+    document.getElementById('modalAgendamento').style.display = 'block';
+}
+async function editarAgendamento(id) {
+    const { data, error } = await _supabase
+        .from('reminders')
+        .select('*, clients(name, phone)')
+        .eq('id', id)
+        .single();
+
+    if (error || !data) {
+        alert("Erro ao carregar agendamento.");
+        return;
+    }
+
+    lembreteEmEdicao = id;
+
+    // Preenche campos
+    document.getElementById('new_name').value = data.clients.name;
+    document.getElementById('new_phone').value = data.clients.phone;
+    document.getElementById('new_title').value = data.title;
+    document.getElementById('new_date').value = data.event_date;
+    document.getElementById('new_msg').value = data.message_template;
+
+    abrirModal();
+}
+
 
     </script>
 </body>
 
 </html>
+
