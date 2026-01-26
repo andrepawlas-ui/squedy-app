@@ -10,6 +10,59 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
 
     <style>
+.filtro-vencimento {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s;
+}
+
+.filtro-vencimento:hover {
+  transform: translateY(-3px);
+  opacity: 0.95;
+}
+
+.filtro-vencimento.ativo {
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.6) inset;
+}
+
+	
+.stat-card.atrasado {
+  background: #dc2626;
+  color: #fff;
+}
+
+.stat-card.hoje {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.stat-card.futuro {
+  background: #16a34a;
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .dashboard-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+	
+
+
+/* Cores do semáforo */
+.card-vencimento.atrasado {
+  background: #dc2626; /* vermelho */
+}
+
+.card-vencimento.hoje {
+  background: #f59e0b; /* amarelo */
+}
+
+.card-vencimento.futuro {
+  background: #16a34a; /* verde */
+}
+
+	
+	#BOTAO EDITAR
 	
 	.action-buttons {
     display: flex;
@@ -25,6 +78,7 @@
     justify-content: center;
 }
 
+#LICENÇA DE USO
 			#secao-licenca {
     width: 100%; /* Agora ela ocupa o espaço total da main-content */
 }
@@ -243,12 +297,43 @@
             <button onclick="abrirModal()" class="btn-add"><i class="fas fa-plus"></i> Novo Agendamento</button>
         </div>
 
-        <div id="secao-lembretes" class="aba-conteudo">
-            <div class="stats-grid">
-                <div class="stat-card"><h3>Clientes Ativos</h3><div id="count-clients" class="value">0</div></div>
-                <div class="stat-card" style="border-color: var(--secondary);"><h3>Pendentes</h3><div id="count-pending" class="value">0</div></div>
-                <div class="stat-card" style="border-color: var(--success);"><h3>Total Geral</h3><div id="count-total" class="value">0</div></div>
-            </div>
+<div id="secao-lembretes" class="aba-conteudo">
+
+  <div class="stats-grid">
+
+    <!-- LINHA 1 -->
+    <div class="stat-card">
+      <h3>Clientes Ativos</h3>
+      <div id="count-clients" class="value">0</div>
+    </div>
+
+    <div class="stat-card" style="border-color: var(--secondary);">
+      <h3>Pendentes</h3>
+      <div id="count-pending" class="value">0</div>
+    </div>
+
+    <div class="stat-card" style="border-color: var(--success);">
+      <h3>Total Geral</h3>
+      <div id="count-total" class="value">0</div>
+    </div> 
+	
+    <!-- LINHA 2 -->
+<div class="stat-card atrasado filtro-vencimento" data-filter="atrasados">
+  <h3>Atrasados</h3>
+  <div id="count-atrasados" class="value">0</div>
+</div>
+
+<div class="stat-card hoje filtro-vencimento" data-filter="hoje">
+  <h3>Vencem Hoje</h3>
+  <div id="count-hoje" class="value">0</div>
+</div>
+
+<div class="stat-card futuro filtro-vencimento" data-filter="futuros">
+  <h3>Futuros</h3>
+  <div id="count-futuros" class="value">0</div>
+</div>
+</div>
+
 			
 			<div class="filter-container">
                 <input type="text" id="filter-nome" onkeyup="filtrarDashboard()" placeholder="Filtrar por nome...">
@@ -388,6 +473,28 @@
         let clientesCadastrados = [];
 		let lembreteEmEdicao = null;
 		
+//FUNCAO DE VERIFICAR DATAS SEMAFORO
+function hojeISO() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function classificarVencimentos(lembretes) {
+  const hoje = hojeISO();
+
+  let atrasados = 0;
+  let hojeCount = 0;
+  let futuros = 0;
+
+  lembretes.forEach(l => {
+    if (!l.event_date) return;
+
+    if (l.event_date < hoje) atrasados++;
+    else if (l.event_date === hoje) hojeCount++;
+    else futuros++;
+  });
+
+  return { atrasados, hoje: hojeCount, futuros };
+}
 
         // FUNÇÃO checar assinatura
 
@@ -489,12 +596,6 @@ function inicializarCalendario() {
     calendar.render();
 }
 		 // FILTROS
-			function filtrarDashboard() {
-            const nome = document.getElementById('filter-nome').value.toLowerCase();
-            const motivo = document.getElementById('filter-motivo').value.toLowerCase();
-            const filtrados = lembretesCache.filter(i => i.clients.name.toLowerCase().includes(nome) && i.title.toLowerCase().includes(motivo));
-            renderizarTabelaLembretes(filtrados);
-        }
 
 			function renderizarTabelaLembretes(lista) {
 				const tbody = document.getElementById('tabela-corpo');
@@ -607,22 +708,41 @@ function inicializarCalendario() {
 				});
 			}
         // --- DASHBOARD / LEMBRETES ---
-        async function carregarDados() {
-    // Mantém seus contadores originais
-    const { count: cT } = await _supabase.from('reminders').select('*', { count: 'exact', head: true });
-    const { count: cP } = await _supabase.from('reminders').select('*', { count: 'exact', head: true }).eq('status', 'pending');
-    const { count: cC } = await _supabase.from('clients').select('*', { count: 'exact', head: true });
-    
-    document.getElementById('count-total').innerText = cT || 0;
-    document.getElementById('count-pending').innerText = cP || 0;
-    document.getElementById('count-clients').innerText = cC || 0;
+  async function carregarDados() {
+  // Contadores gerais
+  const { count: cT } = await _supabase.from('reminders').select('*', { count: 'exact', head: true });
+  const { count: cP } = await _supabase.from('reminders').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+  const { count: cC } = await _supabase.from('clients').select('*', { count: 'exact', head: true });
 
-    // Busca os dados incluindo e-mail dos clientes
-    const { data } = await _supabase.from('reminders').select('*, clients(name, phone, email)').eq('status', 'pending').order('event_date');
-    
-    lembretesCache = data || []; // Alimenta o cache
-    renderizarTabelaLembretes(lembretesCache); // Chama a função visual
+  document.getElementById('count-total').innerText = cT || 0;
+  document.getElementById('count-pending').innerText = cP || 0;
+  document.getElementById('count-clients').innerText = cC || 0;
+
+  // 🔴 BUSCA ÚNICA E OFICIAL DOS LEMBRETES
+  const { data, error } = await _supabase
+    .from('reminders')
+    .select('*, clients(name, phone, email)')
+    .eq('status', 'pending')
+    .order('event_date');
+
+  if (error) {
+    console.error('Erro ao carregar lembretes:', error);
+    return;
+  }
+
+  lembretesCache = data || [];
+
+  // SEMÁFORO
+  const resumo = classificarVencimentos(lembretesCache);
+
+  document.getElementById('count-atrasados').innerText = resumo.atrasados;
+  document.getElementById('count-hoje').innerText = resumo.hoje;
+  document.getElementById('count-futuros').innerText = resumo.futuros;
+
+  renderizarTabelaLembretes(lembretesCache);
 }
+
+
 				// --- CONFIGURAÇÕES ---
 				async function carregarConfiguracoes() {
 					const { data } = await _supabase.from('settings').select('*').maybeSingle();
@@ -733,6 +853,25 @@ async function carregarLicenca() {
     }
 }
 
+
+function filtrarPorVencimento(tipo) {
+  const hoje = new Date();
+  hoje.setHours(12, 0, 0, 0);
+
+  const filtrados = lembretesCache.filter(l => {
+    const dataEvento = normalizarDataLocal(l.event_date);
+
+    if (tipo === 'atrasados') return dataEvento < hoje;
+    if (tipo === 'hoje') return dataEvento.getTime() === hoje.getTime();
+    if (tipo === 'futuros') return dataEvento > hoje;
+
+    return true;
+  });
+
+  renderizarTabelaLembretes(filtrados);
+}
+
+
         // --- SALVAR AGENDAMENTO ---
 // --- SALVAR AGENDAMENTO ATUALIZADO ---
 async function salvarAgendamento() {
@@ -834,7 +973,7 @@ async function salvarAgendamento() {
 							<div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
 								<h3 style="margin: 0 0 10px 0; font-size: 1.1rem; color: var(--dark-blue);">${t.title}</h3>
 								<p style="font-size: 0.85rem; color: #64748b; line-height: 1.5; margin-bottom: 15px;">
-									${t.content.substring(0, 100)}${t.content.length > 100 ? '...' :埋}
+								${t.content.substring(0, 100)}${t.content.length > 100 ? '...' : ''}
 								</p>
 	
 							</div>`;
@@ -1118,9 +1257,54 @@ async function editarAgendamento(id) {
     abrirModal();
 }
 
+//CALSSIFICAR VENCIMENTOS
+function classificarVencimentos(lembretes) {
+  const hoje = new Date();
+  hoje.setHours(12, 0, 0, 0);
+
+  let atrasados = 0;
+  let hojeCount = 0;
+  let futuros = 0;
+
+  lembretes.forEach(l => {
+    const dataEvento = normalizarDataLocal(l.event_date);
+
+    if (dataEvento < hoje) atrasados++;
+    else if (dataEvento.getTime() === hoje.getTime()) hojeCount++;
+    else futuros++;
+  });
+
+  return { atrasados, hoje: hojeCount, futuros };
+}
+
+
+
+
+//QUERYSELETOR DE DATA
+document.querySelectorAll('.filtro-vencimento').forEach(card => {
+  card.addEventListener('click', () => {
+    const tipo = card.dataset.filter;
+    console.log('Filtro clicado:', tipo);
+    filtrarPorVencimento(tipo);
+  });
+});
+// ===============================
+// FUNÇÃO ÚNICA DE DATA (CRIAR)
+// ===============================
+function normalizarDataLocal(dateString) {
+  if (!dateString) return null;
+
+  const dataLimpa = dateString.includes('T')
+    ? dateString.split('T')[0]
+    : dateString;
+
+  const [ano, mes, dia] = dataLimpa.split('-');
+
+  // meio-dia evita erro de fuso
+  return new Date(ano, mes - 1, dia, 12, 0, 0);
+}
 
     </script>
 </body>
 
 </html>
-
