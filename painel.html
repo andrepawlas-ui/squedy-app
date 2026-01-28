@@ -10,6 +10,67 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
 
     <style>
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Botão menu */
+.menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .menu-btn {
+    display: block;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
+  .header-title h1 {
+    font-size: 18px;
+  }
+}
+
+
+.dashboard-cliente-item {
+  margin-bottom: 16px;
+}
+
+.dashboard-cliente-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  color: #111827;
+}
+
+.dashboard-bar {
+  width: 100%;
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.dashboard-bar-fill {
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+	
 .filtro-vencimento {
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s;
@@ -62,7 +123,7 @@
 }
 
 	
-	#BOTAO EDITAR
+/* BOTAO EDITAR */
 	
 	.action-buttons {
     display: flex;
@@ -78,7 +139,33 @@
     justify-content: center;
 }
 
-#LICENÇA DE USO
+.dashboard-cliente-item {
+  margin-bottom: 14px;
+}
+
+.dashboard-cliente-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  color: #334155;
+}
+
+.dashboard-bar {
+  width: 100%;
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.dashboard-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+}
+
+
+/* LICENÇA DE USO */
 			#secao-licenca {
     width: 100%; /* Agora ela ocupa o espaço total da main-content */
 }
@@ -280,22 +367,36 @@
             <a id="menu-mensagens" class="nav-item" onclick="mudarAba('mensagens')"><i class="fas fa-comment-dots"></i> Mensagens</a>
             <a id="menu-configuracoes" class="nav-item" onclick="mudarAba('configuracoes')"><i class="fas fa-cog"></i> Configurações</a>
 			<a id="menu-licenca" class="nav-item" onclick="mudarAba('licenca')"><i class="fas fa-key"></i> Licença de Uso</a>
-        </div>
-<div class="sidebar-footer">
+		<a id="menu-estatisticas" class="nav-item" onclick="mudarAba('estatisticas')"><i class="fas fa-chart-pie"></i><span>Estatísticas</span></a>
+</div> <!-- ✅ FECHA nav-links -->
+  <div class="sidebar-footer">
     <a href="javascript:void(0)" onclick="handleLogout()" class="btn-sair">
         <i class="fas fa-sign-out-alt"></i> Sair
     </a>
 </div>
     </div>
 
-    <div class="main-content">
-        <div class="header-top">
-            <div>
-                <h1 style="margin: 0;">Painel de Controle 👋</h1>
-                <p style="color: #64748b; margin-top: 5px;">Gerencie seus agendamentos.</p>
-            </div>
-            <button onclick="abrirModal()" class="btn-add"><i class="fas fa-plus"></i> Novo Agendamento</button>
-        </div>
+<div class="main-content">
+  <div class="header-top">
+
+    <!-- BOTÃO MENU MOBILE -->
+    <button id="btnMenu" class="menu-btn">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- TÍTULO -->
+    <div class="header-title">
+      <h1 style="margin: 0;">Painel de Controle 👋</h1>
+      <p style="color: #64748b; margin-top: 5px;">Gerencie seus agendamentos.</p>
+    </div>
+
+    <!-- BOTÃO NOVO (DESKTOP) -->
+    <button onclick="abrirModal()" class="btn-add desktop-only">
+      <i class="fas fa-plus"></i> Novo Agendamento
+    </button>
+
+  </div>
+
 
 <div id="secao-lembretes" class="aba-conteudo">
 
@@ -347,6 +448,7 @@
                 </table>
             </div>
         </div>
+				
 
         <div id="secao-clientes" class="aba-conteudo" style="display:none;">
             <div class="data-table-container">
@@ -361,7 +463,14 @@
         <div id="secao-calendario" class="aba-conteudo" style="display:none;">
             <div class="data-table-container"><div id='calendar'></div></div>
         </div>
+		<div id="secao-estatisticas" class="aba-conteudo" style="display: none;">
 
+
+		  <div class="data-table-container dashboard-secundario">
+			<h2>Distribuição de Agendamentos por Cliente</h2>
+			<div id="dashboard-clientes"></div>
+		  </div>
+		</div>
         <div id="secao-mensagens" class="aba-conteudo" style="display:none;">
             <div class="data-table-container">
                 <div class="header-top">
@@ -401,9 +510,7 @@
     </div>
 </div>
 
-</div>
-
-        <div id="modalAgendamento" class="modal-overlay">
+         <div id="modalAgendamento" class="modal-overlay">
         <div class="modal-content">
          <div class="form-group">
 				<label>Cliente <i class="fas fa-info-circle info-tip" data-tip="Dica: Se o cliente já existir, o sistema preencherá o WhatsApp automaticamente."></i></label>
@@ -527,21 +634,22 @@ async function checarAssinatura() {
 // Executa a checagem assim que a página carrega
 checarAssinatura();
         // FUNÇÃO PARA MUDAR ABAS
-        function mudarAba(idAba) {
-            document.querySelectorAll('.aba-conteudo').forEach(aba => aba.style.display = 'none');
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            
-            document.getElementById('secao-' + idAba).style.display = 'block';
-            document.getElementById('menu-' + idAba).classList.add('active');
+function mudarAba(idAba) {
+		  document.querySelectorAll('.aba-conteudo').forEach(aba => aba.style.display = 'none');
+		  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
 
-            if(idAba === 'clientes') carregarListaClientes();
-            if(idAba === 'lembretes') carregarDados();
-            if(idAba === 'calendario') inicializarCalendario();
-            if(idAba === 'mensagens') carregarTemplates();
-            if(idAba === 'configuracoes') carregarConfiguracoes();
-			if(idAba === 'licenca') carregarLicenca();
+		  document.getElementById('secao-' + idAba).style.display = 'block';
+		  document.getElementById('menu-' + idAba).classList.add('active');
 
-        }
+		  if (idAba === 'lembretes') carregarDados();
+		  if (idAba === 'clientes') carregarListaClientes();
+		  if (idAba === 'calendario') inicializarCalendario();
+		  if (idAba === 'mensagens') carregarTemplates();
+		  if (idAba === 'configuracoes') carregarConfiguracoes();
+		  if (idAba === 'licenca') carregarLicenca();
+		  if (idAba === 'estatisticas') carregarDashboardClientes();
+		}
+
 function inicializarCalendario() {
     const calendarEl = document.getElementById('calendar');
     
@@ -609,7 +717,9 @@ function inicializarCalendario() {
 				};
 
 				lista.forEach(item => {
-					const linkWa = `https://wa.me/${item.clients?.phone}?text=${encodeURIComponent(item.message_template)}`;
+const mensagemFinal = montarMensagem(item.message_template, item);
+
+const linkWa = `https://wa.me/${item.clients?.phone}?text=${encodeURIComponent(mensagemFinal)}`;
 					const linkEmail = item.clients?.email ? `mailto:${item.clients.email}?subject=Lembrete&body=${encodeURIComponent(item.message_template)}` : '#';
 
 					// Pega o status em português usando o dicionário acima
@@ -939,7 +1049,7 @@ async function salvarAgendamento() {
 
     if (errorLembrete) {
         console.error(errorLembrete);
-        alert("Erro ao salvar agendamento.");
+        alert("Preencha todos os campos para salvar o agendamento.");
         return;
     }
 
@@ -1303,7 +1413,107 @@ function normalizarDataLocal(dateString) {
   // meio-dia evita erro de fuso
   return new Date(ano, mes - 1, dia, 12, 0, 0);
 }
+// carrega dados estatisticas
+async function carregarDashboardClientes() {
+  const { data, error } = await _supabase
+    .from('reminders')
+    .select('id, client_id, clients:client_id(name)')
+    .neq('status', 'ignored');
 
+  if (error) {
+    console.error('Erro ao carregar estatísticas:', error);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    console.warn('Nenhum dado encontrado para estatísticas');
+    return;
+  }
+
+  const total = data.length;
+  const agrupado = {};
+
+  data.forEach(r => {
+    const nome = r.clients?.name || 'Sem Nome';
+    agrupado[nome] = (agrupado[nome] || 0) + 1;
+  });
+
+  const container = document.getElementById('dashboard-clientes');
+  if (!container) {
+    console.warn('Container dashboard-clientes não encontrado');
+    return;
+  }
+
+  container.innerHTML = '';
+
+  Object.entries(agrupado)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([nome, qtd]) => {
+      const perc = total ? ((qtd / total) * 100).toFixed(1) : 0;
+
+      container.innerHTML += `
+        <div class="dashboard-cliente-item">
+          <div class="dashboard-cliente-header">
+            <strong>${nome}</strong>
+            <span>${qtd} agendamentos • ${perc}%</span>
+          </div>
+          <div class="dashboard-bar">
+            <div class="dashboard-bar-fill" style="width:${perc}%"></div>
+          </div>
+        </div>
+      `;
+    });
+}
+//template Mensagem preenchida	
+const TEMPLATE_PADRAO =
+  "Olá {name}, seu serviço de {title} vence dia {date}. Podemos agendar?";
+//atualizarMensagemPreview
+function atualizarMensagemPreview() {
+  const nome = document.getElementById('new_name')?.value || '';
+  const titulo = document.getElementById('new_title')?.value || '';
+  const dataRaw = document.getElementById('new_date')?.value;
+
+  let dataFormatada = '';
+  if (dataRaw) {
+    dataFormatada = new Date(dataRaw + 'T12:00:00')
+      .toLocaleDateString('pt-BR');
+  }
+
+  const mensagem = TEMPLATE_PADRAO
+    .replace(/{name}/g, nome)
+    .replace(/{title}/g, titulo)
+    .replace(/{date}/g, dataFormatada);
+
+  const textarea = document.getElementById('new_msg');
+  if (textarea) textarea.value = mensagem;
+}
+
+//AGENDAMENTO mensagem padrao 
+function montarMensagem(template, item) {
+  const dataFormatada = item.event_date
+    ? new Date(item.event_date + 'T12:00:00').toLocaleDateString('pt-BR')
+    : '';
+
+  return template
+    .replace(/{name}/g, item.clients?.name || '')
+    .replace(/{title}/g, item.title || '')
+    .replace(/{date}/g, dataFormatada);
+}
+
+//elementos para funcionar via smartphone
+document.addEventListener("DOMContentLoaded", () => {
+    const btnMenu = document.getElementById("btnMenu");
+    const sidebar = document.querySelector(".sidebar");
+
+    if (!btnMenu || !sidebar) {
+      console.error("Menu mobile: botão ou sidebar não encontrados");
+      return;
+    }
+
+    btnMenu.addEventListener("click", () => {
+      sidebar.classList.toggle("open");
+    });
+  });
     </script>
 </body>
 
