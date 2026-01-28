@@ -11,12 +11,6 @@
 
     <style>
 
-.header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
 
 /* Botão menu */
 .menu-btn {
@@ -139,18 +133,6 @@
     justify-content: center;
 }
 
-.dashboard-cliente-item {
-  margin-bottom: 14px;
-}
-
-.dashboard-cliente-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  margin-bottom: 4px;
-  color: #334155;
-}
-
 .dashboard-bar {
   width: 100%;
   height: 10px;
@@ -176,37 +158,6 @@
     color: var(--dark-blue);
 }
 
-			/* Estilo para Ícones de Informação e Tooltips */
-		.info-tip {
-			color: var(--primary);
-			font-size: 0.85rem;
-			cursor: help;
-			margin-left: 6px;
-			transition: 0.3s;
-		}
-
-		.info-tip:hover { color: var(--dark-blue); }
-
-		[data-tip] { position: relative; }
-		[data-tip]:hover::after {
-			content: attr(data-tip);
-			position: absolute;
-			bottom: 125%;
-			left: 50%;
-			transform: translateX(-50%);
-			background: #333;
-			color: #fff;
-			padding: 8px 12px;
-			border-radius: 6px;
-			font-size: 0.75rem;
-			white-space: normal;
-			width: 200px;
-			z-index: 1000;
-			box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-			font-weight: normal;
-			line-height: 1.4;
-		}
-	
 			/* Tooltip de Informação */
 		.info-tip {
 			color: var(--primary);
@@ -348,11 +299,38 @@
         .btn-save { background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; flex: 2; font-weight: 600; }
         .btn-cancel { background: #f1f5f9; color: #64748b; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; flex: 1; font-weight: 600; }
 
-        @media (max-width: 1024px) {
-            .sidebar { display: none; }
-            .main-content { margin-left: 0; width: 100%; padding: 20px; }
-            .stats-grid { grid-template-columns: 1fr; }
-        }
+@media (max-width: 1024px) {
+  .menu-btn {
+    display: block;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    width: var(--sidebar-width);
+    height: 100vh;
+    display: flex;
+    transition: left 0.3s ease;
+    z-index: 1000;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding: 20px;
+  }
+}
+
+
     </style>
 </head>
 <body>
@@ -641,6 +619,11 @@ function mudarAba(idAba) {
 		  document.getElementById('secao-' + idAba).style.display = 'block';
 		  document.getElementById('menu-' + idAba).classList.add('active');
 
+					  // ✅ FECHA O MENU NO MOBILE
+		  const sidebar = document.querySelector('.sidebar');
+		  if (window.innerWidth <= 1024 && sidebar) {
+			sidebar.classList.remove('open');
+		  }
 		  if (idAba === 'lembretes') carregarDados();
 		  if (idAba === 'clientes') carregarListaClientes();
 		  if (idAba === 'calendario') inicializarCalendario();
@@ -1500,20 +1483,21 @@ function montarMensagem(template, item) {
     .replace(/{date}/g, dataFormatada);
 }
 
-//elementos para funcionar via smartphone
+// Menu mobile – abrir / fechar sidebar
 document.addEventListener("DOMContentLoaded", () => {
-    const btnMenu = document.getElementById("btnMenu");
-    const sidebar = document.querySelector(".sidebar");
+  const btnMenu = document.getElementById("btnMenu");
+  const sidebar = document.querySelector(".sidebar");
 
-    if (!btnMenu || !sidebar) {
-      console.error("Menu mobile: botão ou sidebar não encontrados");
-      return;
-    }
+  if (!btnMenu || !sidebar) {
+    console.warn("Menu mobile: botão ou sidebar não encontrados");
+    return;
+  }
 
-    btnMenu.addEventListener("click", () => {
-      sidebar.classList.toggle("open");
-    });
+  btnMenu.addEventListener("click", () => {
+    sidebar.classList.toggle("open");
   });
+});
+
     </script>
 </body>
 
