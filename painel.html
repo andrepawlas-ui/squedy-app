@@ -1500,26 +1500,51 @@ document.addEventListener("DOMContentLoaded", () => {
 //verificar licenças
 async function verificarLicenca() {
 
+ const { data: { user } } = await supabaseClient.auth.getUser();
+
  const { data: sub } = await supabaseClient
   .from("subscriptions")
   .select("status, current_period_end, plan_code")
+  .eq("user_id", user.id)
   .single();
 
- if (sub?.status === "active") {
+ const botaoComprar = document.querySelector(".btn-comprar");
 
-   document.querySelector(".btn-comprar").style.display = "none";
+ if (!sub) return;
 
-   document.querySelector(".status-licenca").innerHTML = `
-     ✅ Licença ativa (${sub.plan_code})
-     <br>
-     válida até ${new Date(sub.current_period_end).toLocaleDateString()}
-   `;
+ // licença ativa
+ if (sub.status === "active") {
+
+   if (botaoComprar) {
+     botaoComprar.style.display = "none";
+   }
+
+   console.log("Licença ativa — botão ocultado");
  }
 
+ // trial válido
+ if (sub.status === "trialing" &&
+     new Date(sub.current_period_end) > new Date()) {
+
+   console.log("Usuário em trial ainda");
+ }
+
+ // expirado
+ if (sub.status === "expired" ||
+     new Date(sub.current_period_end) < new Date()) {
+
+   console.log("Trial expirado — mostrar compra");
+
+   if (botaoComprar) {
+     botaoComprar.style.display = "block";
+   }
+ }
 }
+
 
     </script>
 </body>
 
 </html>
+
 
