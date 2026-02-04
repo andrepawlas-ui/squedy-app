@@ -1497,8 +1497,29 @@ document.addEventListener("DOMContentLoaded", () => {
     sidebar.classList.toggle("open");
   });
 });
+//verificar licenças
+async function verificarLicenca() {
+
+ const { data: sub } = await supabaseClient
+  .from("subscriptions")
+  .select("status, current_period_end, plan_code")
+  .single();
+
+ if (sub?.status === "active") {
+
+   document.querySelector(".btn-comprar").style.display = "none";
+
+   document.querySelector(".status-licenca").innerHTML = `
+     ✅ Licença ativa (${sub.plan_code})
+     <br>
+     válida até ${new Date(sub.current_period_end).toLocaleDateString()}
+   `;
+ }
+
+}
 
     </script>
 </body>
 
 </html>
+
